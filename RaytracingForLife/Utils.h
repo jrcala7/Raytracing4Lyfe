@@ -5,12 +5,19 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 
+#include "rt_src/Color.h"
+
 using namespace std;
 
-struct PixelColor {
-	double r;
-	double g;
-	double b;
+class PixelColor {
+	public:
+		double r;
+		double g;
+		double b;
+
+		PixelColor() : r(0), g(0), b(0) {};
+		PixelColor(double _r, double _g, double _b) : r(_r), g(_g), b(_b) {};
+		PixelColor(Vec3 v) : r(v.x()), g(v.y()), b(v.z()) {};
 };
 
 /// <summary>
