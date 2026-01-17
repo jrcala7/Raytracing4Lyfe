@@ -5,8 +5,77 @@
 
 using namespace std;
 
+void PrintSampleImage(vector<PixelColor> &image) {
+	int imgWidth = 256;
+	int imgHeight = 256;
+
+	image.resize(imgWidth * imgHeight);
+
+	cout << "Image Width: " << imgWidth << ", Image Height: " << imgHeight << endl;
+
+	ofstream outFile("output.ppm");
+	if(!outFile || !outFile.is_open()) {
+		cerr << "Error creating file!" << endl;
+		return;
+	}
+
+	outFile << "P3\n" << imgWidth << ' ' << imgHeight << "\n255\n";
+
+	for (int j = 0; j < imgHeight; j++) {
+		for (int i = 0; i < imgWidth; i++) {
+			auto r = double(i) / (imgWidth - 1);
+			auto g = double(j) / (imgHeight - 1);
+			auto b = 0.0;
+
+			int ir = static_cast<int>(255.999 * r);
+			int ig = static_cast<int>(255.999 * g);
+			int ib = static_cast<int>(255.999 * b);
+
+			outFile << ir << ' ' << ig << ' ' << ib << '\n';
+			PixelColor pixel = { r, g, b };
+			image[j * imgWidth + i] = pixel;
+		}
+	}
+
+	outFile.close();
+	cout << "Image file 'output.ppm' created successfully." << endl;
+}
+
+vector<double> ConvertToDoubleVector(const vector<PixelColor> &image) {
+	vector<double> doubleImage;
+	doubleImage.reserve(image.size() * 3); // 3 channels per pixel
+	for (const auto &pixel : image) {
+		//OpenCV uses BGR order
+		doubleImage.push_back(pixel.b);
+		doubleImage.push_back(pixel.g);
+		doubleImage.push_back(pixel.r);
+		
+	}
+	return doubleImage;
+}
+
+void SaveImage(const vector<double> &image, int imgWidth, int imgHeight, const string &filename) {
+	// 1. Wrap the vector into a 3-channel double-precision Mat
+	// Ensure the vector size is exactly height * width * 3
+	cv::Mat doubleMat(imgHeight, imgWidth, CV_64FC3, (void*)image.data());
+
+	// 2. Convert to 8-bit (standard PNG)
+	// If your doubles are in range [0, 1], scale by 255.
+	// If they are already [0, 255], use a scale factor of 1.
+	cv::Mat eightBitMat;
+	doubleMat.convertTo(eightBitMat, CV_8UC3, 255.0);
+
+	// 3. Save as PNG
+	cv::imwrite(filename, eightBitMat);
+}
+
 int main()
 {
-	cout << "Hello CMake." << endl;
+	vector<PixelColor> image;
+	PrintSampleImage(image);
+
+	vector<double> doubleImage = ConvertToDoubleVector(image);
+	SaveImage(doubleImage, 256, 256, "saved_output.png");
+
 	return 0;
 }

@@ -4,5 +4,13 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
+#include <vector>
 
-// TODO: Reference additional headers your program requires here.
+#include <opencv2/opencv.hpp>
+
+struct PixelColor {
+	double r;
+	double g;
+	double b;
+};
