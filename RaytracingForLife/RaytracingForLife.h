@@ -8,9 +8,4 @@
 #include <vector>
 
 #include <opencv2/opencv.hpp>
-
-struct PixelColor {
-	double r;
-	double g;
-	double b;
-};
+#include "Utils.h"

@@ -16,11 +16,12 @@ set(FETCHCONTENT_BASE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty CACHE PATH "Bas
 
 project ("RaytracingForLife")
 
-set(OpenCV_DIR "I:/OpenCV/opencv/build")
+#set(OpenCV_DIR "I:/OpenCV/opencv/build")
+set(OpenCV_DIR "H:/Tools/OpenCV/opencv/build")
 find_package(OpenCV REQUIRED)
 
 # Add source to this project's executable.
-add_executable (RaytracingForLife "RaytracingForLife.cpp" "RaytracingForLife.h")
+add_executable (RaytracingForLife "RaytracingForLife.cpp" "RaytracingForLife.h" "Utils.h")
 
 target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS})
 
