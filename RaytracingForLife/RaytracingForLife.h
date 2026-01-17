@@ -11,3 +11,4 @@
 #include "Utils.h"
 
 #include "rt_src/Vec3.h"
+#include "rt_src/Ray.h"
