@@ -1,0 +1,24 @@
+#pragma once
+
+#include "Ray.h"
+
+class Hit_Record {
+public:
+	Point3 p;
+	Vec3 Normal;
+	double t;
+
+	bool front_face;
+	void Set_Face_Normal(const Ray& r, const Vec3& out_normal) {
+		// Set the hit record normal vector
+
+		front_face = dot(r.direction(), out_normal) < 0;
+		Normal = front_face ? out_normal : -out_normal; // <-- this is a unit vector
+	}
+};
+
+class Hittable {
+public:
+	virtual ~Hittable() = default;
+	virtual bool Hit(const Ray& r, double ray_train, double ray_tmax, Hit_Record& rec) const = 0;
+};

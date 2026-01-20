@@ -21,7 +21,14 @@ set(OpenCV_DIR "H:/Tools/OpenCV/opencv/build")
 find_package(OpenCV REQUIRED)
 
 # Add source to this project's executable.
-add_executable (RaytracingForLife "RaytracingForLife.cpp" "RaytracingForLife.h" "Utils.h" "rt_src/Vec3.h" "rt_src/Color.h" "rt_src/Ray.h")
+add_executable (RaytracingForLife
+"RaytracingForLife.cpp" 
+"RaytracingForLife.h" 
+"Utils.h" 
+"rt_src/Vec3.h" 
+"rt_src/Color.h" 
+"rt_src/Ray.h" 
+"rt_src/Hittable.h" "rt_src/Sphere.h")
 
 target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS})
 
