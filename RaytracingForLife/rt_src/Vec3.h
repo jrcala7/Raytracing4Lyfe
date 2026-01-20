@@ -3,6 +3,8 @@
 #include <cmath>
 #include <iostream>
 
+#include "RT_Weekend.h"
+
 class Vec3 {
 	public:
 		double e[3];
@@ -44,6 +46,22 @@ class Vec3 {
 
 		double length() const {
 			return std::sqrt(length_squared());
+		}
+
+		static Vec3 random() {
+			return Vec3(
+				random_double(),
+				random_double(),
+				random_double()
+			);
+		}
+
+		static Vec3 random(double min, double max) {
+			return Vec3(
+				random_double(min, max),
+				random_double(min, max),
+				random_double(min, max)
+			);
 		}
 };
 
@@ -114,4 +132,25 @@ inline Vec3 cross(const Vec3& l, const Vec3& r) {
 
 inline Vec3 unit_vector(const Vec3& v) {
 	return v / v.length();
+}
+
+inline Vec3 random_unit_vector() {
+	while (true) {
+		auto p = Vec3::random(-1, 1);
+		auto lensq = p.length_squared();
+
+		if(lensq <= 1 && 1e-160 < lensq)
+			return p / std::sqrt(lensq);
+	}
+}
+
+inline Vec3 random_on_hemisphere(const Vec3& norm) {
+	Vec3 on_unit_sphere = random_unit_vector();
+
+	if (dot(on_unit_sphere, norm) > 0.0) {
+		return on_unit_sphere;
+	}
+	else {
+		return -on_unit_sphere;
+	}
 }

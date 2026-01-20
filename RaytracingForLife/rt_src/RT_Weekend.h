@@ -26,7 +26,9 @@ inline double random_double(double min, double max) {
 	return min + (max - min) * random_double();
 }
 
+/*
 #include "Color.h"
 #include "Interval.h"
-#include "Ray.h"
 #include "Vec3.h"
+#include "Ray.h"
+*/

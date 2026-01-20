@@ -82,7 +82,12 @@ private:
 		Hit_Record rec;
 
 		if (world.Hit(r, Interval(0, infinity), rec)) {
-			return 0.5 * (rec.Normal + Color(1, 1, 1));
+			Vec3 dir = random_on_hemisphere(rec.Normal);
+			return 0.5 *
+				Ray_Color(
+					Ray(rec.p, dir),
+					world
+				);
 		}
 
 		Vec3 Unit_Dir = unit_vector(r.direction());
