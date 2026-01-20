@@ -13,6 +13,7 @@ public:
 	double aspectRatio = 16.0 / 9.0;
 	int width = 480;
 	int height = 0;
+	int samples_per_pixel = 10;
 
 	//Camera Propertiesw
 	void Render(const Hittable& world, vector<PixelColor>& pixels) {
@@ -24,14 +25,16 @@ public:
 		for (int j = 0; j < height; j++) {
 			clog << "\rScanlines remaining " << height - j << ' ' << flush;
 			for (int i = 0; i < width; i++) {
+				Color pixel_color(0, 0, 0);
+				
+				for (int sample = 0; sample < samples_per_pixel; sample++) {
+					Ray r = Get_Ray(i, j);
+					pixel_color += Ray_Color(r, world);
+				}
 
-				auto pixelCenter = pixel00_loc + (i * pixel_delta_u) + (j * pixel_delta_v);
-				auto ray_dir = pixelCenter - center;
+				Color scale_color = pixel_samples_scale * pixel_color;
 
-				Ray r(center, ray_dir);
-				Color pColor = Ray_Color(r, world);
-
-				PixelColor p(pColor);
+				PixelColor p(scale_color);
 				pixels[j * width + i] = p;
 			}
 		}
@@ -42,6 +45,7 @@ public:
 private:
 	Point3 center;
 	Point3 pixel00_loc;
+	double pixel_samples_scale;
 
 	Vec3 pixel_delta_u;
 	Vec3 pixel_delta_v;
@@ -49,6 +53,8 @@ private:
 	void Initialize() {
 		height = int(width / aspectRatio);
 		height = (height < 1) ? 1 : height;
+
+		pixel_samples_scale = 1.0 / samples_per_pixel;
 
 		center = Point3(0, 0, 0);
 
@@ -83,5 +89,22 @@ private:
 		auto a = 0.5 * (Unit_Dir.y() + 1.0);
 
 		return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
+	}
+
+	Ray Get_Ray(int i, int j) const {
+		auto offset = SampleSquare();
+
+		auto pixelSample = pixel00_loc +
+			((i + offset.x()) * pixel_delta_u) +
+			((j + offset.y()) * pixel_delta_v);
+
+		auto ray_origin = center;
+		auto ray_direction = pixelSample - ray_origin;
+
+		return Ray(ray_origin, ray_direction);
+	}
+
+	Vec3 SampleSquare() const {
+		return Vec3(random_double() - 0.5, random_double() - 0.5, 0);
 	}
 };
