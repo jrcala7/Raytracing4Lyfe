@@ -14,6 +14,7 @@ public:
 	int width = 480;
 	int height = 0;
 	int samples_per_pixel = 10;
+	int max_depth = 10;
 
 	//Camera Propertiesw
 	void Render(const Hittable& world, vector<PixelColor>& pixels) {
@@ -29,7 +30,7 @@ public:
 				
 				for (int sample = 0; sample < samples_per_pixel; sample++) {
 					Ray r = Get_Ray(i, j);
-					pixel_color += Ray_Color(r, world);
+					pixel_color += Ray_Color(r, max_depth, world);
 				}
 
 				Color scale_color = pixel_samples_scale * pixel_color;
@@ -78,14 +79,20 @@ private:
 		pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 	}
 
-	Color Ray_Color(const Ray& r, const Hittable& world) const {
+	Color Ray_Color(const Ray& r, int depth, const Hittable& world) const {
+		
+		if(depth <= 0) {
+			return Color(0, 0, 0);
+		}
+
 		Hit_Record rec;
 
-		if (world.Hit(r, Interval(0, infinity), rec)) {
-			Vec3 dir = random_on_hemisphere(rec.Normal);
-			return 0.5 *
+		if (world.Hit(r, Interval(0.001, infinity), rec)) {
+			Vec3 dir = rec.Normal + random_unit_vector();
+			return 0.1 *
 				Ray_Color(
 					Ray(rec.p, dir),
+					depth - 1,
 					world
 				);
 		}

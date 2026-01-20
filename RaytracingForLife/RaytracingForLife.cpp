@@ -23,6 +23,7 @@ int main()
 	camera.aspectRatio = 16.0 / 9.0;
 	camera.width = 400;
 	camera.samples_per_pixel = 100;
+	camera.max_depth = 50;
 
 	camera.Render(hittables, image);
 
