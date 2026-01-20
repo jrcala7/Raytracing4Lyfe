@@ -33,7 +33,21 @@ void PrintTestImage() {
 	SaveImage(sdArr, width, height, "NewTest.png");
 }
 
+bool Hit_Sphere(const Point3& center, double radius, const Ray& r) {
+	Vec3 oc = center - r.origin();
+	auto a = dot(r.direction(), r.direction());
+	auto b = -2.0 * dot(r.direction(), oc);
+	auto c = dot(oc, oc) - radius * radius;
+
+	auto discriminant = b * b - 4 * a * c;
+	
+	return discriminant >= 0;
+}
+
 Color Ray_Color(const Ray& r) {
+	if (Hit_Sphere(Point3(0, 0, -1), 0.5, r))
+		return Color(1, 0, 0);
+
 	Vec3 Unit_Dir = unit_vector(r.direction());
 	auto a = 0.5 * (Unit_Dir.y() + 1.0);
 
