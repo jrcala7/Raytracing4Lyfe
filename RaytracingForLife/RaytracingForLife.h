@@ -14,3 +14,4 @@
 #include "rt_src/Hittable.h"
 #include "rt_src/Hittable_List.h"
 #include "rt_src/Sphere.h"
+#include "rt_src/Camera.h"
