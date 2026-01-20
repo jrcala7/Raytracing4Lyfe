@@ -28,7 +28,9 @@ add_executable (RaytracingForLife
 "rt_src/Vec3.h" 
 "rt_src/Color.h" 
 "rt_src/Ray.h" 
-"rt_src/Hittable.h" "rt_src/Sphere.h")
+"rt_src/Hittable_List.h" 
+"rt_src/Hittable.h" 
+"rt_src/Sphere.h")
 
 target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS})
 
