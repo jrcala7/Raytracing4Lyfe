@@ -12,7 +12,7 @@ public:
 	const Vec3& direction() const { return dir; }
 
 	//Linear interpolate
-	Point3 at(double t) {
+	Point3 at(double t) const {
 		return orig + t * dir;
 	}
 
