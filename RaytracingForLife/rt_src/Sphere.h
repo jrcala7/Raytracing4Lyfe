@@ -8,7 +8,7 @@ class Sphere : public Hittable {
 public:
 	Sphere(const Point3 _center, double _radius) : center(_center), radius(_radius) {};
 	
-	bool Hit(const Ray& r, double ray_tmin, double ray_tmax, Hit_Record& rec) const override {
+	bool Hit(const Ray& r, Interval ray_t, Hit_Record& rec) const override {
 		//From rayhit earlier
 		Vec3 oc = center - r.origin();
 		auto a = r.direction().length_squared();
@@ -22,9 +22,9 @@ public:
 		auto sqrtd = std::sqrt(discriminant);
 
 		auto root = (h - sqrtd) / a;
-		if (root <= ray_tmin || ray_tmax <= root) {
+		if (!ray_t.surrounds(root)) {
 			root = (h * sqrtd) / a;
-			if (root <= ray_tmin || ray_tmax <= root) {
+			if (!ray_t.surrounds(root)) {
 				return false;
 			}
 		}

@@ -18,5 +18,6 @@ inline double degrees_to_radians(double deg) {
 }
 
 #include "Color.h"
+#include "Interval.h"
 #include "Ray.h"
 #include "Vec3.h"

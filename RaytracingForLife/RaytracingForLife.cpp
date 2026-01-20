@@ -52,7 +52,7 @@ double Hit_Sphere(const Point3& center, double radius, const Ray& r) {
 Color Ray_Color(const Ray& r, const Hittable& world) {
 	Hit_Record rec;
 
-	if (world.Hit(r, 0, infinity, rec)) {
+	if (world.Hit(r, Interval(0, infinity), rec)) {
 		return 0.5 * (rec.Normal + Color(1, 1, 1));
 	}
 
