@@ -49,12 +49,11 @@ double Hit_Sphere(const Point3& center, double radius, const Ray& r) {
 	}
 }
 
-Color Ray_Color(const Ray& r) {
-	auto t = Hit_Sphere(Point3(0, 0, -1), 0.5, r);
-	
-	if (t > 0.0) {
-		Vec3 N = unit_vector(r.at(t) - Vec3(0, 0, -1));
-		return 0.5 * Color(N.x() + 1, N.y() + 1, N.z() + 1);
+Color Ray_Color(const Ray& r, const Hittable& world) {
+	Hit_Record rec;
+
+	if (world.Hit(r, 0, infinity, rec)) {
+		return 0.5 * (rec.Normal + Color(1, 1, 1));
 	}
 
 	Vec3 Unit_Dir = unit_vector(r.direction());
@@ -72,6 +71,17 @@ int main()
 
 	int height = int(width / aspectRatio);
 	height = (height < 1) ? 1 : height;
+
+	// World
+
+	Hittable_List hittables;
+	hittables.Add(
+		make_shared<Sphere>(Point3(0, 0, -1), 0.5)
+	);
+
+	hittables.Add(
+		make_shared<Sphere>(Point3(0, -100.5, -1), 100)
+	);
 
 	//Camera
 	auto focal_len = 1.0;
@@ -105,7 +115,7 @@ int main()
 			auto ray_dir = pixelCenter - camera_center;
 			
 			Ray r(camera_center, ray_dir);
-			Color pColor = Ray_Color(r);
+			Color pColor = Ray_Color(r, hittables);
 
 			PixelColor p(pColor);
 			image[j * width + i] = p;

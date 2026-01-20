@@ -10,5 +10,7 @@
 #include <opencv2/opencv.hpp>
 #include "Utils.h"
 
-#include "rt_src/Vec3.h"
-#include "rt_src/Ray.h"
+#include "rt_src/RT_Weekend.h"
+#include "rt_src/Hittable.h"
+#include "rt_src/Hittable_List.h"
+#include "rt_src/Sphere.h"
