@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Hittable.h"
+#include "Material.h"
 #include "../Utils.h"
 #include <vector>
 
@@ -88,13 +89,19 @@ private:
 		Hit_Record rec;
 
 		if (world.Hit(r, Interval(0.001, infinity), rec)) {
-			Vec3 dir = rec.Normal + random_unit_vector();
-			return 0.1 *
-				Ray_Color(
-					Ray(rec.p, dir),
-					depth - 1,
-					world
-				);
+			Ray scattered;
+			Color attenuation;
+
+			if(rec.mat->Scatter(r, rec, attenuation, scattered)) {
+				return attenuation * 
+					Ray_Color(
+						scattered,
+						depth - 1,
+						world
+					);
+			}
+			
+			return Color(0, 0, 0);
 		}
 
 		Vec3 Unit_Dir = unit_vector(r.direction());

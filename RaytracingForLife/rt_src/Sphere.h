@@ -6,7 +6,8 @@
 class Sphere : public Hittable {
 
 public:
-	Sphere(const Point3 _center, double _radius) : center(_center), radius(_radius) {
+	Sphere(const Point3 _center, double _radius, shared_ptr<Material> _mat) : 
+		center(_center), radius(fmax(0, _radius)), mat(_mat) {
 	
 	};
 	

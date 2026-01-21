@@ -2,6 +2,7 @@
 //
 
 #include "RaytracingForLife.h"
+#include "rt_src/Material.h"
 
 using namespace std;
 
@@ -9,13 +10,24 @@ int main()
 {
 	// World
 	Hittable_List hittables;
-	hittables.Add(
-		make_shared<Sphere>(Point3(0, 0, -1), 0.5)
-	);
 
-	hittables.Add(
-		make_shared<Sphere>(Point3(0, -100.5, -1), 100)
-	);
+	auto mat_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
+	auto mat_center = make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
+
+	auto mat_left = make_shared<Metal>(Color(0.8, 0.8, 0.8));
+	auto mat_right = make_shared<Metal>(Color(0.8, 0.6, 0.2));
+
+	hittables.
+		Add(make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, mat_ground));
+
+	hittables.
+		Add(make_shared<Sphere>(Point3(0.0, 0.0, -1.2), 0.5, mat_center));
+
+	hittables.
+		Add(make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, mat_left));
+
+	hittables.
+		Add(make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, mat_right));
 
 	vector<PixelColor> image;
 
