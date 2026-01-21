@@ -49,7 +49,8 @@ private:
 class Metal : public Material {
 
 public:
-	Metal(const Color& _albedo) : albedo(_albedo) {};
+	Metal(const Color& _albedo, double _fuzz) : 
+		albedo(_albedo), fuzz(_fuzz < 1 ? _fuzz : 1) {};
 
 	bool Scatter(
 		const Ray& r_in,
@@ -63,13 +64,17 @@ public:
 			rec.Normal
 		);
 
+		refl = unit_vector(refl) + 
+			(fuzz * random_unit_vector());
+
 		scattered = Ray(rec.p, refl);
 		attenuation = albedo;
 
-		return true;
+		return (dot(scattered.direction(), rec.Normal) > 0);
 	}
 
 private:
 	Color albedo;
-
+	//rand reflection
+	double fuzz;
 };
