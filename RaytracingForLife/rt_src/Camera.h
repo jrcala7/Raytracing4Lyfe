@@ -17,6 +17,11 @@ public:
 	int samples_per_pixel = 10;
 	int max_depth = 10;
 
+	double vfov = 90.0; //Vertical FOV
+	Point3 lookfrom = Point3(0, 0, 0);
+	Point3 lookat = Point3(0, 0, -1);
+	Vec3 vup = Vec3(0, 1, 0);
+
 	//Camera Propertiesw
 	void Render(const Hittable& world, vector<PixelColor>& pixels) {
 		Initialize();
@@ -51,6 +56,7 @@ private:
 
 	Vec3 pixel_delta_u;
 	Vec3 pixel_delta_v;
+	Vec3 u, v, w;
 
 	void Initialize() {
 		height = int(width / aspectRatio);
@@ -58,17 +64,23 @@ private:
 
 		pixel_samples_scale = 1.0 / samples_per_pixel;
 
-		center = Point3(0, 0, 0);
+		center = lookfrom;
 
 		//Viewport dimensions
 		//View port is righthanded
-		auto focal_len = 1.0;
-		auto viewport_height = 2.0;
+		auto focal_len = (lookfrom - lookat).length();
+		auto theta = degrees_to_radians(vfov);
+		auto h = tan(theta / 2);
+		auto viewport_height = 2.0 * h * focal_len;
 		auto viewport_width = viewport_height * (double(width) / height);
+
+		w = unit_vector(lookfrom - lookat);
+		u = unit_vector(cross(vup, w));
+		v = cross(w, u);
 	
 		//Calculate Horizontal and down viewport edge
-		auto viewport_u = Vec3(viewport_width, 0, 0);
-		auto viewport_v = Vec3(0, -viewport_height, 0);
+		auto viewport_u = viewport_width * u;
+		auto viewport_v = viewport_height * -v;
 
 		//Calculate horizontal and vertical delta vecs
 		pixel_delta_u = viewport_u / width;
@@ -76,7 +88,7 @@ private:
 
 		//Calculate loc of upper left pixel
 		auto viewport_upper_left = center
-			- Vec3(0, 0, focal_len) - viewport_u / 2 - viewport_v / 2;
+			- (focal_len * w) - viewport_u / 2 - viewport_v / 2;
 		pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
 	}
 

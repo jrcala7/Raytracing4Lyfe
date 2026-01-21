@@ -13,7 +13,6 @@ int main()
 
 	auto mat_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
 	auto mat_center = make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
-
 	auto mat_left = make_shared<Dielectric>(1.5);
 	auto mat_bubble = make_shared<Dielectric>(1.00 / 1.50);
 	auto mat_right = make_shared<Metal>(Color(0.8, 0.6, 0.2), 1.0);
@@ -40,6 +39,11 @@ int main()
 	camera.width = 400;
 	camera.samples_per_pixel = 100;
 	camera.max_depth = 50;
+
+	camera.vfov = 90.0;
+	camera.lookfrom = Point3(-2, 2, 1);
+	camera.lookat = Point3(0, 0, -1);
+	camera.vup = Vec3(0, 1, 0);
 
 	camera.Render(hittables, image);
 
