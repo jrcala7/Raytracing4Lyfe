@@ -78,3 +78,34 @@ private:
 	//rand reflection
 	double fuzz;
 };
+
+class Dielectric : public Material {
+
+public:
+	Dielectric(double _refraction_index) : 
+		refraction_index(_refraction_index) {};
+
+	bool Scatter(
+		const Ray& r_in,
+		const Hit_Record& rec,
+		Color& attenuation,
+		Ray& scattered
+	) const override {
+
+		attenuation = Color(1.0, 1.0, 1.0);
+		double ri = rec.front_face ?
+			(1.0 / refraction_index) : refraction_index;
+
+		Vec3 unit_dir = unit_vector(r_in.direction());
+		Vec3 refracted = refract(unit_dir,
+			rec.Normal, ri);
+
+		scattered = Ray(rec.p, refracted);
+		return true;
+	}
+
+private:
+	//Refractive index in a vacuum
+	double refraction_index;
+
+};
