@@ -97,8 +97,22 @@ public:
 			(1.0 / refraction_index) : refraction_index;
 
 		Vec3 unit_dir = unit_vector(r_in.direction());
-		Vec3 refracted = refract(unit_dir,
-			rec.Normal, ri);
+
+		double cos_theta = fmin(
+			dot(-unit_dir, rec.Normal), 1.0
+		);
+
+		double sin_thta = sqrt(1.0 - cos_theta * cos_theta);
+
+		bool cannot_refract = ri * sin_thta > 1.0;
+		Vec3 refracted;
+
+		if (cannot_refract) {
+			refracted = reflect(unit_dir, rec.Normal);
+		}
+		else {
+			refracted = refract(unit_dir, rec.Normal, ri);
+		}
 
 		scattered = Ray(rec.p, refracted);
 		return true;
