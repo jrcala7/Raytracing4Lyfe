@@ -40,10 +40,13 @@ int main()
 	camera.samples_per_pixel = 100;
 	camera.max_depth = 50;
 
-	camera.vfov = 90.0;
+	camera.vfov = 20.0;
 	camera.lookfrom = Point3(-2, 2, 1);
 	camera.lookat = Point3(0, 0, -1);
 	camera.vup = Vec3(0, 1, 0);
+
+	camera.defocus_angle = 10.0;
+	camera.focus_dist = 3.4;
 
 	camera.Render(hittables, image);
 

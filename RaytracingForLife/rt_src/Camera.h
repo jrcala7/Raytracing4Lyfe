@@ -22,6 +22,9 @@ public:
 	Point3 lookat = Point3(0, 0, -1);
 	Vec3 vup = Vec3(0, 1, 0);
 
+	double defocus_angle = 0;
+	double focus_dist = 10;
+
 	//Camera Propertiesw
 	void Render(const Hittable& world, vector<PixelColor>& pixels) {
 		Initialize();
@@ -58,6 +61,9 @@ private:
 	Vec3 pixel_delta_v;
 	Vec3 u, v, w;
 
+	Vec3 defocus_disk_u;
+	Vec3 defocus_disk_v;
+
 	void Initialize() {
 		height = int(width / aspectRatio);
 		height = (height < 1) ? 1 : height;
@@ -68,10 +74,9 @@ private:
 
 		//Viewport dimensions
 		//View port is righthanded
-		auto focal_len = (lookfrom - lookat).length();
 		auto theta = degrees_to_radians(vfov);
 		auto h = tan(theta / 2);
-		auto viewport_height = 2.0 * h * focal_len;
+		auto viewport_height = 2.0 * h * focus_dist;
 		auto viewport_width = viewport_height * (double(width) / height);
 
 		w = unit_vector(lookfrom - lookat);
@@ -88,8 +93,12 @@ private:
 
 		//Calculate loc of upper left pixel
 		auto viewport_upper_left = center
-			- (focal_len * w) - viewport_u / 2 - viewport_v / 2;
+			- (focus_dist * w) - viewport_u / 2 - viewport_v / 2;
 		pixel00_loc = viewport_upper_left + 0.5 * (pixel_delta_u + pixel_delta_v);
+
+		auto defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle) / 2);
+		defocus_disk_u = u * defocus_radius;
+		defocus_disk_v = v * defocus_radius;
 	}
 
 	Color Ray_Color(const Ray& r, int depth, const Hittable& world) const {
@@ -129,7 +138,7 @@ private:
 			((i + offset.x()) * pixel_delta_u) +
 			((j + offset.y()) * pixel_delta_v);
 
-		auto ray_origin = center;
+		auto ray_origin = defocus_angle <= 0 ? center : defocus_disk_sample();
 		auto ray_direction = pixelSample - ray_origin;
 
 		return Ray(ray_origin, ray_direction);
@@ -137,5 +146,11 @@ private:
 
 	Vec3 SampleSquare() const {
 		return Vec3(random_double() - 0.5, random_double() - 0.5, 0);
+	}
+
+	Point3 defocus_disk_sample() const {
+		auto p = random_in_unit_disk();
+		return center +
+			(p.x() * defocus_disk_u) + (p.y() * defocus_disk_v);
 	}
 };
