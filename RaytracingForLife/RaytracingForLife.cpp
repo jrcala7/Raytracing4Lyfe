@@ -6,55 +6,77 @@
 
 using namespace std;
 
-int main()
-{
+void RT_WeekendFinalRender() {
 	// World
-	Hittable_List hittables;
+	Hittable_List world;
 
-	auto mat_ground = make_shared<Lambertian>(Color(0.8, 0.8, 0.0));
-	auto mat_center = make_shared<Lambertian>(Color(0.1, 0.2, 0.5));
-	auto mat_left = make_shared<Dielectric>(1.5);
-	auto mat_bubble = make_shared<Dielectric>(1.00 / 1.50);
-	auto mat_right = make_shared<Metal>(Color(0.8, 0.6, 0.2), 1.0);
+	auto ground_material = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
+	world.Add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
 
-	hittables.
-		Add(make_shared<Sphere>(Point3(0.0, -100.5, -1.0), 100.0, mat_ground));
+	for (int a = -11; a < 11; a++) {
+		for (int b = -11; b < 11; b++) {
+			auto choose_mat = random_double();
+			Point3 center(a + 0.9 * random_double(), 0.2, b + 0.9 * random_double());
+			if ((center - Point3(4, 0.2, 0)).length() > 0.9) {
+				shared_ptr<Material> sphere_material;
+				if (choose_mat < 0.8) {
+					//Diffuse
+					auto albedo = Color::random() * Color::random();
+					sphere_material = make_shared<Lambertian>(albedo);
+					world.Add(make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+				else if (choose_mat < 0.95) {
+					//Metal
+					auto albedo = Color::random(0.5, 1);
+					auto fuzz = random_double(0, 0.5);
+					sphere_material = make_shared<Metal>(albedo, fuzz);
+					world.Add(make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+				else {
+					//Glass
+					sphere_material = make_shared<Dielectric>(1.5);
+					world.Add(make_shared<Sphere>(center, 0.2, sphere_material));
+				}
+			}
+		}
+	}
 
-	hittables.
-		Add(make_shared<Sphere>(Point3(0.0, 0.0, -1.2), 0.5, mat_center));
+	auto material1 = make_shared<Dielectric>(1.5);
+	world.Add(make_shared<Sphere>(Point3(0, 1, 0), 1.0, material1));
+	
+	auto material2 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));	
+	world.Add(make_shared<Sphere>(Point3(-4, 1, 0), 1.0, material2));
 
-	hittables.
-		Add(make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.5, mat_left));
-
-	hittables.
-		Add(make_shared<Sphere>(Point3(-1.0, 0.0, -1.0), 0.4, mat_bubble));
-
-	hittables.
-		Add(make_shared<Sphere>(Point3(1.0, 0.0, -1.0), 0.5, mat_right));
+	auto material3 = make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
+	world.Add(make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
 
 	vector<PixelColor> image;
 
 	Camera camera;
 	camera.aspectRatio = 16.0 / 9.0;
-	camera.width = 400;
-	camera.samples_per_pixel = 100;
+	camera.width = 1200;
+	camera.samples_per_pixel = 500;
 	camera.max_depth = 50;
 
 	camera.vfov = 20.0;
-	camera.lookfrom = Point3(-2, 2, 1);
-	camera.lookat = Point3(0, 0, -1);
+	camera.lookfrom = Point3(13, 2, 3);
+	camera.lookat = Point3(0, 0, 0);
 	camera.vup = Vec3(0, 1, 0);
 
-	camera.defocus_angle = 10.0;
-	camera.focus_dist = 3.4;
+	camera.defocus_angle = 0.6;
+	camera.focus_dist = 10.0;
 
-	camera.Render(hittables, image);
+	camera.Render(world, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
-	SaveImage(sdArr, camera.width, camera.height, "CameraTest.png");
+	SaveImage(sdArr, camera.width, camera.height, "RT01_Final.png");
 
-	cout << "Done Printing Camera Test";
+	cout << "RT01_Final.png" << endl;
+}
 
+int main()
+{
+	RT_WeekendFinalRender();
 	return 0;
 }
