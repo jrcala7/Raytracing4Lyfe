@@ -3,6 +3,7 @@
 
 #include "RaytracingForLife.h"
 #include "rt_src/Material.h"
+#include "rt_src/BVH.h"
 
 using namespace std;
 
@@ -51,6 +52,8 @@ void RT_WeekendFinalRender() {
 
 	auto material3 = make_shared<Metal>(Color(0.7, 0.6, 0.5), 0.0);
 	world.Add(make_shared<Sphere>(Point3(4, 1, 0), 1.0, material3));
+
+	world = Hittable_List(make_shared<BVH_Node>(world));
 
 	vector<PixelColor> image;
 
