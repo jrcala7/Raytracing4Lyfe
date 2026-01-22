@@ -52,6 +52,7 @@ public:
 
 		Vec3 outnorm = (rec.p - curr_center) / radius;
 		rec.Set_Face_Normal(r, outnorm);
+		Get_Sphere_UV(outnorm, rec.u, rec.v);
 		rec.mat = mat;
 
 		return true;
@@ -67,4 +68,11 @@ private:
 	shared_ptr <Material> mat;
 	AABB bbox;
 
+	static void Get_Sphere_UV(const Point3& p, double& u, double& v) {
+		auto theta = acos(-p.y());
+		auto phi = atan2(-p.z(), p.x()) + pi;
+
+		u = phi / (2 * pi);
+		v = theta / pi;
+	}
  };
