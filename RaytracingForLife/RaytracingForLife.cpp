@@ -85,8 +85,45 @@ void RT_WeekendFinalRender() {
 	cout << "RT01_Final.png" << endl;
 }
 
+void CheckerSphere() {
+	Hittable_List world;
+
+	auto checker = make_shared<Checker_Texture>(
+		0.32,
+		Color(0.2, 0.3, 0.1),
+		Color(0.9, 0.9, 0.9)
+	);
+
+	world.Add(make_shared<Sphere>(Point3(0, -10, 0), 10, make_shared<Lambertian>(checker)));
+	world.Add(make_shared<Sphere>(Point3(0, 10, 0), 10, make_shared<Lambertian>(checker)));
+
+	vector<PixelColor> image;
+
+	Camera camera;
+	camera.aspectRatio = 16.0 / 9.0;
+	camera.width = 400;
+	camera.samples_per_pixel = 10;
+	camera.max_depth = 50;
+
+	camera.vfov = 20.0;
+	camera.lookfrom = Point3(13, 2, 3);
+	camera.lookat = Point3(0, 0, 0);
+	camera.vup = Vec3(0, 1, 0);
+
+	camera.defocus_angle = 0.;
+
+	camera.Render(world, image);
+
+	auto sdArr = ConvertToDoubleVector(image);
+
+	SaveImage(sdArr, camera.width, camera.height, "RT02_Final.png");
+
+	cout << "RT02_Final.png" << endl;
+}
+
 int main()
 {
-	RT_WeekendFinalRender();
+	//RT_WeekendFinalRender();
+	CheckerSphere();
 	return 0;
 }
