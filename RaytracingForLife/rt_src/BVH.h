@@ -11,7 +11,14 @@ class BVH_Node : public Hittable {
 public:
 	BVH_Node(Hittable_List list) : BVH_Node(list.objects, 0, list.objects.size()) {};
 	BVH_Node(vector<shared_ptr<Hittable>>& objs, size_t start, size_t end) {
-		int axis = random_int(0, 2);
+
+		bbox = AABB::empty;
+
+		for (size_t obj_index = start; obj_index < end; obj_index++) {
+			bbox = AABB(bbox, objs[obj_index]->bounding_box());
+		}
+
+		int axis = bbox.longest_axis();
 
 		auto comparator = (axis == 0) ? box_x_compare
 						: (axis == 1) ? box_y_compare
@@ -33,8 +40,6 @@ public:
 			left = make_shared<BVH_Node>(objs, start, mid);
 			right = make_shared<BVH_Node>(objs, mid, end);
 		}
-
-		bbox = AABB(left->bounding_box(), right->bounding_box());
 	}
 
 	bool Hit(const Ray& r, Interval ray_t, Hit_Record& rec) const override {
