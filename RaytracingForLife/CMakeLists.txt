@@ -35,7 +35,7 @@ add_executable (RaytracingForLife
 "rt_src/RT_Weekend.h" 
 "rt_src/Interval.h" 
 "rt_src/Camera.h" 
-"rt_src/Material.h" "rt_src/AABB.h" "rt_src/BVH.h")
+"rt_src/Material.h" "rt_src/AABB.h" "rt_src/BVH.h" "rt_src/Texture.h" "rt_src/Checker_Texture.h")
 
 target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS})
 

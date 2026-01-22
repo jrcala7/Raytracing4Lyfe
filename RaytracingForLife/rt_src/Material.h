@@ -2,6 +2,7 @@
 
 #include "Color.h"
 #include "Hittable.h"
+#include "Texture.h"
 
 class Material {
 public:
@@ -20,7 +21,8 @@ public:
 class Lambertian : public Material {
 
 public :
-	Lambertian(const Color& _albedo) : albedo(_albedo) {};
+	Lambertian(const Color& _albedo) : tex(make_shared<Solid_Color>(_albedo)) {};
+	Lambertian(shared_ptr<Texture> _tex) : tex(_tex) {};
 
 	bool Scatter(
 		const Ray& r_in,
@@ -36,13 +38,13 @@ public :
 		}
 		
 		scattered = Ray(rec.p, scatter_dir, r_in.time());
-		attenuation = albedo;
+		attenuation = tex->value(rec.u, rec.v, rec.p);
 		
 		return true;
 	}
 
 private:
-	Color albedo;
+	shared_ptr<Texture> tex;
 
 };
 

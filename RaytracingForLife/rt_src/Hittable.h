@@ -11,6 +11,7 @@ public:
 	Point3 p;
 	Vec3 Normal;
 	double t;
+	double u, v;
 
 	shared_ptr<Material> mat;
 

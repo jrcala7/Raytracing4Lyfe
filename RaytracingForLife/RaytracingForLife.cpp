@@ -4,6 +4,7 @@
 #include "RaytracingForLife.h"
 #include "rt_src/Material.h"
 #include "rt_src/BVH.h"
+#include "rt_src/Checker_Texture.h"
 
 using namespace std;
 
@@ -11,8 +12,12 @@ void RT_WeekendFinalRender() {
 	// World
 	Hittable_List world;
 
-	auto ground_material = make_shared<Lambertian>(Color(0.5, 0.5, 0.5));
-	world.Add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, ground_material));
+	auto checker = make_shared<Checker_Texture>(
+		0.32,
+		Color(0.2, 0.3, 0.1),
+		Color(0.9, 0.9, 0.9)
+	);
+	world.Add(make_shared<Sphere>(Point3(0, -1000, 0), 1000, make_shared<Lambertian>(checker)));
 
 	for (int a = -11; a < 11; a++) {
 		for (int b = -11; b < 11; b++) {
