@@ -35,7 +35,7 @@ public :
 			scatter_dir = rec.Normal;
 		}
 		
-		scattered = Ray(rec.p, scatter_dir);
+		scattered = Ray(rec.p, scatter_dir, r_in.time());
 		attenuation = albedo;
 		
 		return true;
@@ -67,7 +67,7 @@ public:
 		refl = unit_vector(refl) + 
 			(fuzz * random_unit_vector());
 
-		scattered = Ray(rec.p, refl);
+		scattered = Ray(rec.p, refl, r_in.time());
 		attenuation = albedo;
 
 		return (dot(scattered.direction(), rec.Normal) > 0);
@@ -115,7 +115,7 @@ public:
 			refracted = refract(unit_dir, rec.Normal, ri);
 		}
 
-		scattered = Ray(rec.p, refracted);
+		scattered = Ray(rec.p, refracted, r_in.time());
 		return true;
 	}
 

@@ -140,8 +140,9 @@ private:
 
 		auto ray_origin = defocus_angle <= 0 ? center : defocus_disk_sample();
 		auto ray_direction = pixelSample - ray_origin;
+		auto ray_time = random_double();
 
-		return Ray(ray_origin, ray_direction);
+		return Ray(ray_origin, ray_direction, ray_time);
 	}
 
 	Vec3 SampleSquare() const {

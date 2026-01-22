@@ -23,7 +23,9 @@ void RT_WeekendFinalRender() {
 					//Diffuse
 					auto albedo = Color::random() * Color::random();
 					sphere_material = make_shared<Lambertian>(albedo);
-					world.Add(make_shared<Sphere>(center, 0.2, sphere_material));
+
+					auto off_center = center + Vec3(0, random_double(0, 0.5), 0);
+					world.Add(make_shared<Sphere>(center, off_center, 0.2, sphere_material));
 				}
 				else if (choose_mat < 0.95) {
 					//Metal
@@ -54,9 +56,9 @@ void RT_WeekendFinalRender() {
 
 	Camera camera;
 	camera.aspectRatio = 16.0 / 9.0;
-	camera.width = 1200;
-	camera.samples_per_pixel = 500;
-	camera.max_depth = 50;
+	camera.width = 400;
+	camera.samples_per_pixel = 10;
+	camera.max_depth = 20;
 
 	camera.vfov = 20.0;
 	camera.lookfrom = Point3(13, 2, 3);
