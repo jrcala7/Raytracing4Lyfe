@@ -48,6 +48,20 @@ public:
 		return PerlinLerp(c, u, v, w);
 	}
 
+	double Turb(const Point3& p, int depth) const {
+		auto accum = 0.0;
+		auto temp_p = p;
+		auto wieght = 1.0;
+
+		for (int i = 0; i < depth; i++) {
+			accum += wieght * Noise(temp_p);
+			wieght *= 0.5;
+			temp_p *= 2;
+		}
+
+		return std::fabs(accum);
+	}
+
 private:
 	static const int point_count = 256;
 	Vec3 randVec[point_count];

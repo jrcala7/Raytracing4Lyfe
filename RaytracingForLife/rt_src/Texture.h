@@ -57,7 +57,12 @@ public:
 	NoiseTexture(double _scale) : scale(_scale){}
 
 	Color value(double u, double v, const Point3& p) const override {
-		return Color(1, 1, 1) * 0.5 * (1.0 + noise.Noise(scale * p));
+		//return Color(1, 1, 1) * 0.5 * (1.0 + noise.Noise(scale * p));
+		//return Color(1, 1, 1) * noise.Turb(p, 7);
+		return Color(0.5, 0.5, 0.5) *
+			(
+				1 + std::sin(scale * p.z() + 10 * noise.Turb(p, 7))
+			);
 	}
 
 private:
