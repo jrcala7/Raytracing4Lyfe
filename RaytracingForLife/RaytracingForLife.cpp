@@ -315,6 +315,76 @@ void SimpleLight() {
 	cout << "SampleLight.png" << endl;
 }
 
+void CornellBox() {
+	Hittable_List world;
+
+	auto red = make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
+	auto white = make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
+	auto green = make_shared<Lambertian>(Color(0.12, 0.45, 0.15));
+	auto light = make_shared<DiffuseLight>(Color(15, 15, 15));
+
+	world.Add(
+		make_shared<Quad>(
+			Point3(555, 0, 0), Vec3(0, 555, 0), Vec3(0, 0, 555), green
+		)
+	);
+
+	world.Add(
+		make_shared<Quad>(
+			Point3(0, 0, 0), Vec3(0, 555, 0), Vec3(0, 0, 555), red
+		)
+	);
+
+	world.Add(
+		make_shared<Quad>(
+			Point3(343, 554, 332), Vec3(-130, 0, 0), Vec3(0, 0, -105), light
+		)
+	);
+
+	world.Add(
+		make_shared<Quad>(
+			Point3(0, 0, 0), Vec3(555, 0, 0), Vec3(0, 0, 555), white
+		)
+	);
+
+	world.Add(
+		make_shared<Quad>(
+			Point3(555, 555, 555), Vec3(-555, 0, 0), Vec3(0, 0, -555), white
+		)
+	);
+
+	world.Add(
+		make_shared<Quad>(
+			Point3(0, 0, 555), Vec3(555, 0, 0), Vec3(0, 555, 0), white
+		)
+	);
+
+
+	Camera cam;
+
+	cam.aspectRatio = 1.0;
+	cam.width = 600;
+	cam.samples_per_pixel = 100;
+	cam.max_depth = 50;
+	cam.background = Color(0.0, 0.0, 0.0);
+
+	cam.vfov = 40;
+	cam.lookfrom = Point3(278, 278, -800);
+	cam.lookat = Point3(278, 278, 0);
+	cam.vup = Vec3(0, 1, 0);
+
+	cam.defocus_angle = 0;
+
+	vector<PixelColor> image;
+	cam.Render(world, image);
+
+	auto sdArr = ConvertToDoubleVector(image);
+
+	SaveImage(sdArr, cam.width, cam.height, "CornellBox.png");
+
+	cout << "CornellBox.png" << endl;
+}
+
 int main()
 {
 	//RT_WeekendFinalRender();
@@ -322,6 +392,7 @@ int main()
 	//SphereSample();
 	//NoiseSample();
 	//QuadTest();
-	SimpleLight();
+	//SimpleLight();
+	CornellBox();
 	return 0;
 }
