@@ -89,8 +89,8 @@ inline shared_ptr<Hittable_List> Box(const Point3& a, const Point3& b, shared_pt
 	);
 
 	auto dx = Vec3(max.x() - min.x(), 0, 0);
-	auto dy = Vec3( 0, max.x() - min.x(), 0);
-	auto dz = Vec3( 0, 0, max.x() - min.x());
+	auto dy = Vec3( 0, max.y() - min.y(), 0);
+	auto dz = Vec3( 0, 0, max.z() - min.z());
 
 	//F
 	sides->Add(
@@ -113,7 +113,7 @@ inline shared_ptr<Hittable_List> Box(const Point3& a, const Point3& b, shared_pt
 	//L
 	sides->Add(
 		make_shared<Quad>(
-			Point3(min.x(), min.y(), min.z()), -dz, dy, mat
+			Point3(min.x(), min.y(), min.z()), dz, dy, mat
 		)
 	);
 	//T
@@ -125,7 +125,7 @@ inline shared_ptr<Hittable_List> Box(const Point3& a, const Point3& b, shared_pt
 	//Bot
 	sides->Add(
 		make_shared<Quad>(
-			Point3(min.x(), max.y(), min.z()), dx, dz, mat
+			Point3(min.x(), min.y(), min.z()), dx, dz, mat
 		)
 	);
 

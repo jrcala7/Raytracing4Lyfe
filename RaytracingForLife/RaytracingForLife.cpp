@@ -359,25 +359,21 @@ void CornellBox() {
 		)
 	);
 
-	world.Add(
-		Box(
-			Point3(130, 0, 65), Point3(295, 165, 230), white
-		)
+	shared_ptr<Hittable> box1 = Box(
+		Point3(0, 0, 0),
+		Point3(165, 330, 165),
+		white
 	);
-
-	world.Add(
-		Box(
-			Point3(265, 0, 295), Point3(430, 330, 460), white
-		)
-	);
-
+	//box1 = make_shared<Rot_Y>(box1, 15);
+	box1 = make_shared<Translate>(box1, Vec3(265, 0, 295));
+	world.Add(box1);
 
 	Camera cam;
 
 	cam.aspectRatio = 1.0;
 	cam.width = 600;
-	cam.samples_per_pixel = 100;
-	cam.max_depth = 50;
+	cam.samples_per_pixel = 50;
+	cam.max_depth = 25;
 	cam.background = Color(0.0, 0.0, 0.0);
 
 	cam.vfov = 40;

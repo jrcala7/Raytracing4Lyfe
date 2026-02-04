@@ -43,3 +43,15 @@ public:
 
 const Interval Interval::empty = Interval(infinity, -infinity);
 const Interval Interval::universe = Interval(-infinity, infinity);
+
+Interval operator+ (const Interval& v, double disp) {
+	return Interval(
+		v.min + disp, v.max + disp
+	);
+}
+
+Interval operator+ (double disp, const Interval& v) {
+	return Interval(
+		v.min + disp, v.max + disp
+	);
+}
