@@ -359,6 +359,18 @@ void CornellBox() {
 		)
 	);
 
+	world.Add(
+		Box(
+			Point3(130, 0, 65), Point3(295, 165, 230), white
+		)
+	);
+
+	world.Add(
+		Box(
+			Point3(265, 0, 295), Point3(430, 330, 460), white
+		)
+	);
+
 
 	Camera cam;
 
