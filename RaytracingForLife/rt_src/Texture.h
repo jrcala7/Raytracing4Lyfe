@@ -2,6 +2,7 @@
 
 #include "RTW_Image.h"
 #include "Color.h"
+#include "Perlin.h"
 
 class Texture {
 public:
@@ -47,4 +48,18 @@ public:
 
 private:
 	RTW_Image image;
+};
+
+class NoiseTexture : public Texture {
+
+public:
+	NoiseTexture() {}
+
+	Color value(double u, double v, const Point3& p) const override {
+		return Color(1,1,1) * noise.Noise(p);
+	}
+
+private:
+	Perlin noise;
+
 };
