@@ -153,7 +153,7 @@ void SphereSample() {
 void NoiseSample() {
 	Hittable_List world;
 
-	auto pertex = make_shared<NoiseTexture>();
+	auto pertex = make_shared<NoiseTexture>(4.0);
 	world.Add(
 		make_shared<Sphere>(
 			Point3(0, -1000, 0), 1000,
