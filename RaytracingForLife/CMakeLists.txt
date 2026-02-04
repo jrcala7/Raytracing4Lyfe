@@ -41,7 +41,7 @@ add_executable (RaytracingForLife
 "rt_src/BVH.h" 
 "rt_src/Texture.h" 
 "rt_src/Checker_Texture.h" 
-"rt_src/RTW_Image.h" "rt_src/Perlin.h")
+"rt_src/RTW_Image.h" "rt_src/Perlin.h" "rt_src/Quad.h")
 
 target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS})
 

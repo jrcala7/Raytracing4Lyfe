@@ -5,6 +5,7 @@
 #include "rt_src/Material.h"
 #include "rt_src/BVH.h"
 #include "rt_src/Checker_Texture.h"
+#include "rt_src/Quad.h"
 
 using namespace std;
 
@@ -192,11 +193,77 @@ void NoiseSample() {
 	cout << "SampleTexImg.png" << endl;
 }
 
+void QuadTest() {
+	Hittable_List world;
+
+	//Colors
+	auto l_mat = make_shared<Lambertian>(Color(1.0, 0.2, 0.2));
+	auto b_mat = make_shared<Lambertian>(Color(0.2, 1.0, 0.2));
+	auto r_mat = make_shared<Lambertian>(Color(0.2, 0.2, 1.0));
+	auto u_mat = make_shared<Lambertian>(Color(1.0, 0.5, 0.0));
+	auto d_mat = make_shared<Lambertian>(Color(0.2, 0.8, 0.8));
+
+	//Quads
+	world.Add(
+		make_shared<Quad>(
+			Point3(-3, -2, 5), Vec3(0,0,-4), Vec3(0, 4, 0), l_mat
+		)
+	);
+
+	world.Add(
+		make_shared<Quad>(
+			Point3(-2, -2, 0), Vec3(4, 0, 0), Vec3(0, 4, 0), b_mat
+		)
+	);
+
+	world.Add(
+		make_shared<Quad>(
+			Point3(3, -2, 1), Vec3(0, 0, 4), Vec3(0, 4, 0), r_mat
+		)
+	);
+
+	world.Add(
+		make_shared<Quad>(
+			Point3(-2, 3, 1), Vec3(4, 0, 0), Vec3(0, 0, 4), u_mat
+		)
+	);
+
+	world.Add(
+		make_shared<Quad>(
+			Point3(-2, -3, 5), Vec3(4, 0, 0), Vec3(0, 0, -4), d_mat
+		)
+	);
+
+	Camera cam;
+
+	cam.aspectRatio = 1.0;
+	cam.width = 400;
+	cam.samples_per_pixel = 100;
+	cam.max_depth = 50;
+
+	cam.vfov = 80;
+	cam.lookfrom = Point3(0, 0, 9);
+	cam.lookat = Point3(0, 0, 0);
+	cam.vup = Vec3(0, 1, 0);
+
+	cam.defocus_angle = 0;
+
+	vector<PixelColor> image;
+	cam.Render(world, image);
+
+	auto sdArr = ConvertToDoubleVector(image);
+
+	SaveImage(sdArr, cam.width, cam.height, "QuadTest.png");
+
+	cout << "QuadTest.png" << endl;
+}
+
 int main()
 {
 	//RT_WeekendFinalRender();
 	//CheckerSphere();
 	//SphereSample();
-	NoiseSample();
+	//NoiseSample();
+	QuadTest();
 	return 0;
 }
