@@ -121,9 +121,39 @@ void CheckerSphere() {
 	cout << "RT02_Final.png" << endl;
 }
 
+void SphereSample() {
+	auto tex = make_shared<ImageTexture>("zukiss.png");
+	auto surf = make_shared<Lambertian>(tex);
+	auto globe = make_shared<Sphere>(Point3(0, 0, 0), 2.0, surf);
+
+	Camera cam;
+	
+	cam.aspectRatio = 16.0 / 9.0;
+	cam.width = 400;
+	cam.samples_per_pixel = 100;
+	cam.max_depth = 50;
+
+	cam.vfov = 20;
+	cam.lookfrom = Point3(0, 0, 12);
+	cam.lookat = Point3(0, 0, 0);
+	cam.vup = Vec3(0, 1, 0);
+
+	cam.defocus_angle = 0;
+
+	vector<PixelColor> image;
+	cam.Render(Hittable_List(globe), image);
+
+	auto sdArr = ConvertToDoubleVector(image);
+
+	SaveImage(sdArr, cam.width, cam.height, "SampleTexImg.png");
+
+	cout << "SampleTexImg.png" << endl;
+}
+
 int main()
 {
 	//RT_WeekendFinalRender();
-	CheckerSphere();
+	//CheckerSphere();
+	SphereSample();
 	return 0;
 }

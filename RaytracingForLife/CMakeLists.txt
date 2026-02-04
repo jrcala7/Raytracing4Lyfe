@@ -23,6 +23,7 @@ find_package(OpenCV REQUIRED)
 
 # Add source to this project's executable.
 add_executable (RaytracingForLife
+"stb_image.h" 
 "RaytracingForLife.cpp" 
 "RaytracingForLife.h" 
 "Utils.h" 
@@ -35,7 +36,12 @@ add_executable (RaytracingForLife
 "rt_src/RT_Weekend.h" 
 "rt_src/Interval.h" 
 "rt_src/Camera.h" 
-"rt_src/Material.h" "rt_src/AABB.h" "rt_src/BVH.h" "rt_src/Texture.h" "rt_src/Checker_Texture.h")
+"rt_src/Material.h" 
+"rt_src/AABB.h" 
+"rt_src/BVH.h" 
+"rt_src/Texture.h" 
+"rt_src/Checker_Texture.h" 
+"rt_src/RTW_Image.h")
 
 target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS})
 
