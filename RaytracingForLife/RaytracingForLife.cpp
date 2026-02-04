@@ -68,6 +68,7 @@ void RT_WeekendFinalRender() {
 	camera.width = 400;
 	camera.samples_per_pixel = 10;
 	camera.max_depth = 20;
+	camera.background = Color(0.7, 0.8, 1.0);
 
 	camera.vfov = 20.0;
 	camera.lookfrom = Point3(13, 2, 3);
@@ -105,6 +106,7 @@ void CheckerSphere() {
 	camera.width = 400;
 	camera.samples_per_pixel = 10;
 	camera.max_depth = 50;
+	camera.background = Color(0.7, 0.8, 1.0);
 
 	camera.vfov = 20.0;
 	camera.lookfrom = Point3(13, 2, 3);
@@ -133,6 +135,7 @@ void SphereSample() {
 	cam.width = 400;
 	cam.samples_per_pixel = 100;
 	cam.max_depth = 50;
+	cam.background = Color(0.7, 0.8, 1.0);
 
 	cam.vfov = 20;
 	cam.lookfrom = Point3(0, 0, 12);
@@ -175,6 +178,7 @@ void NoiseSample() {
 	cam.width = 400;
 	cam.samples_per_pixel = 100;
 	cam.max_depth = 50;
+	cam.background = Color(0.7, 0.8, 1.0);
 
 	cam.vfov = 20;
 	cam.lookfrom = Point3(13, 2, 3);
@@ -240,6 +244,7 @@ void QuadTest() {
 	cam.width = 400;
 	cam.samples_per_pixel = 100;
 	cam.max_depth = 50;
+	cam.background = Color(0.7, 0.8, 1.0);
 
 	cam.vfov = 80;
 	cam.lookfrom = Point3(0, 0, 9);
@@ -258,12 +263,65 @@ void QuadTest() {
 	cout << "QuadTest.png" << endl;
 }
 
+void SimpleLight() {
+	Hittable_List world;
+
+	auto pertex = make_shared<NoiseTexture>(4.0);
+	world.Add(
+		make_shared<Sphere>(
+			Point3(0, -1000, 0), 1000,
+			make_shared<Lambertian>(pertex)
+		)
+	);
+
+	world.Add(
+		make_shared<Sphere>(
+			Point3(0, 2, 0), 2,
+			make_shared<Lambertian>(pertex)
+		)
+	);
+
+
+	auto diffLight = make_shared<DiffuseLight>(Color(4,4,4));
+	world.Add(
+		make_shared<Sphere>(Point3(0, 7, 0), 2, diffLight)
+	);
+	world.Add(
+		make_shared<Quad>(Point3(3, 1, -2), Vec3(2,0,0), Vec3(0,2,0), diffLight)
+	);
+
+	Camera cam;
+
+	cam.aspectRatio = 16.0 / 9.0;
+	cam.width = 400;
+	cam.samples_per_pixel = 100;
+	cam.max_depth = 50;
+	cam.background = Color(0.0, 0.0, 0.0);
+
+	cam.vfov = 20;
+	cam.lookfrom = Point3(26, 3, 6);
+	cam.lookat = Point3(0, 2, 0);
+	cam.vup = Vec3(0, 1, 0);
+
+	cam.defocus_angle = 0;
+
+	vector<PixelColor> image;
+	cam.Render(world, image);
+
+	auto sdArr = ConvertToDoubleVector(image);
+
+	SaveImage(sdArr, cam.width, cam.height, "SampleLight.png");
+
+	cout << "SampleLight.png" << endl;
+}
+
 int main()
 {
 	//RT_WeekendFinalRender();
 	//CheckerSphere();
 	//SphereSample();
 	//NoiseSample();
-	QuadTest();
+	//QuadTest();
+	SimpleLight();
 	return 0;
 }

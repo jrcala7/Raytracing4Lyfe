@@ -16,6 +16,7 @@ public:
 	int height = 0;
 	int samples_per_pixel = 10;
 	int max_depth = 10;
+	Color background;
 
 	double vfov = 90.0; //Vertical FOV
 	Point3 lookfrom = Point3(0, 0, 0);
@@ -107,6 +108,7 @@ private:
 			return Color(0, 0, 0);
 		}
 
+		/*Old Implem
 		Hit_Record rec;
 
 		if (world.Hit(r, Interval(0.001, infinity), rec)) {
@@ -129,6 +131,27 @@ private:
 		auto a = 0.5 * (Unit_Dir.y() + 1.0);
 
 		return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
+		*/
+
+		Hit_Record rec;
+		//If ray hits nothing return BG
+		if (!world.Hit(
+			r, Interval(0.001, infinity), rec)
+			) {
+			return background;
+		}
+
+		Ray scattered;
+		Color attenuation;
+
+		Color emission = rec.mat->Emitted(rec.u, rec.v, rec.p);
+
+		if (!rec.mat->Scatter(r, rec, attenuation, scattered))
+			return emission;
+
+		Color scatter_color = attenuation * Ray_Color(scattered, depth - 1, world);
+
+		return emission + scatter_color;
 	}
 
 	Ray Get_Ray(int i, int j) const {
