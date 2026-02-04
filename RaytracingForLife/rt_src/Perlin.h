@@ -27,6 +27,14 @@ public:
 		auto v = p.y() - std::floor(p.y());
 		auto w = p.z() - std::floor(p.z());
 
+		//u = HermSmooth(u);
+		//v = HermSmooth(v);
+		//w = HermSmooth(w);
+
+		u = u * u * (3 - 2 * u);
+		v = v * v * (3 - 2 * v);
+		w = w * w * (3 - 2 * w);
+
 		auto i = int(std::floor(p.x()));
 		auto j = int(std::floor(p.y()));
 		auto k = int(std::floor(p.z()));
@@ -37,8 +45,8 @@ public:
 				for (int dk = 0; dk < 2; dk++) {
 					c[di][dj][dk] = randfloat[
 						perm_x[(i + di) & 255] ^
-						perm_x[(j + dj) & 255] ^
-						perm_x[(k + dk) & 255]
+						perm_y[(j + dj) & 255] ^
+						perm_z[(k + dk) & 255]
 					];
 				}
 			}
@@ -54,6 +62,10 @@ private:
 	int perm_x[point_count];
 	int perm_y[point_count];
 	int perm_z[point_count];
+
+	static double HermSmooth(double val) {
+		return val * val * (3 - 2 * val);
+	}
 
 	static void Generate_Perm(int* p) {
 		for (int i = 0; i < point_count; i++) {
