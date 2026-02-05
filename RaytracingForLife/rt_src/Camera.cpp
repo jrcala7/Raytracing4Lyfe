@@ -7,24 +7,50 @@ void Camera::Render(const Hittable& world, vector<PixelColor>& pixels) {
 	cout << "Rendering Image desu" << endl;
 	pixels.resize(width * height);
 
+	auto start = std::chrono::steady_clock::now();
+
 	for (int j = 0; j < height; j++) {
-		clog << "\rScanlines remaining " << height - j << ' ' << flush;
+		//clog << "\rScanlines remaining " << height - j << ' ' << flush;
 		for (int i = 0; i < width; i++) {
 			Color pixel_color(0, 0, 0);
 
-			for (int sample = 0; sample < samples_per_pixel; sample++) {
-				Ray r = Get_Ray(i, j);
-				pixel_color += Ray_Color(r, max_depth, world);
-			}
+			PixelThread* t = new PixelThread(
+				i, j, width,
+				ToCameraProperties(),
+				world
+			);
 
-			Color scale_color = pixel_samples_scale * pixel_color;
+			renderer.AddPixel(t);
 
-			PixelColor p(scale_color);
-			pixels[j * width + i] = p;
+			//for (int sample = 0; sample < samples_per_pixel; sample++) {
+			//	Ray r = Get_Ray(i, j);
+			//	pixel_color += Ray_Color(r, max_depth, world);
+			//}
+
+			//Color scale_color = pixel_samples_scale * pixel_color;
+
+			//PixelColor p(scale_color);
+			//pixels[j * width + i] = p;
 		}
 	}
 
-	cout << "Done Rendering Image desu" << endl;
+	//
+	renderer.StartRendering();
+
+	renderer.Wait();
+	pixels = renderer.outputPixels;
+
+	for (int j = 0; j < height; j++) {
+		//clog << "\rScanlines remaining " << height - j << ' ' << flush;
+		for (int i = 0; i < width; i++) {
+			int index = j * width + i;
+			pixels[index] = renderer.outputPixels[index];
+		}
+	}
+	auto end = std::chrono::steady_clock::now();
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+
+	cout << "Done Rendering Image desu " << duration.count() << "ms" << endl;
 }
 
 void Camera::Initialize() {
@@ -62,6 +88,8 @@ void Camera::Initialize() {
 	auto defocus_radius = focus_dist * tan(degrees_to_radians(defocus_angle) / 2);
 	defocus_disk_u = u * defocus_radius;
 	defocus_disk_v = v * defocus_radius;
+
+	renderer.InitPool(width * height);
 }
 
 Color Camera::Ray_Color(const Ray& r, int depth, const Hittable& world) const {

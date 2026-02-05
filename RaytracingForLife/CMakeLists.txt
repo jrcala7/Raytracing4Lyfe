@@ -9,7 +9,7 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
@@ -45,7 +45,7 @@ add_executable (RaytracingForLife
 "rt_src/Texture.h" 
 "rt_src/Checker_Texture.h" 
 "rt_src/RTW_Image.h" 
-"rt_src/RTW_Image.cpp" "rt_src/Perlin.h" "rt_src/Quad.h" "rt_src/Camera.cpp")
+"rt_src/RTW_Image.cpp" "rt_src/Perlin.h" "rt_src/Quad.h" "rt_src/Camera.cpp" "ext/IETThread.h" "ext/IETThread.cpp" "ext/PixelThread.h" "ext/PixelThread.cpp" "ext/RenderPool.h" "ext/RenderPool.cpp")
 
 target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS})
 

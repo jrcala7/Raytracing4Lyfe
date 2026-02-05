@@ -5,6 +5,8 @@
 #include "../Utils.h"
 #include <vector>
 
+#include "../ext/RenderPool.h"
+#include <chrono>
 
 using namespace std;
 
@@ -30,6 +32,8 @@ public:
 	void Render(const Hittable& world, vector<PixelColor>& pixels);;
 
 private:
+	RenderPool renderer;
+
 	Point3 center;
 	Point3 pixel00_loc;
 	double pixel_samples_scale;
@@ -50,4 +54,38 @@ private:
 	Vec3 SampleSquare() const;
 
 	Point3 defocus_disk_sample() const;
+
+	CameraProperties ToCameraProperties() {
+		CameraProperties ret;
+
+		ret.aspectRatio = aspectRatio;
+		ret.width = width;
+		ret.height = height;
+		ret.samples_per_pixel = samples_per_pixel;
+		ret.max_depth = max_depth;
+		ret.background = background;
+
+		ret.vfov = vfov; //Vertical FOV
+		ret.lookfrom = lookfrom;
+		ret.lookat = lookat ;
+		ret.vup = vup ;
+
+		ret.defocus_angle = defocus_angle;
+		ret.focus_dist = focus_dist;
+
+		ret.center = center;
+		ret.pixel00_loc = pixel00_loc;
+		ret.pixel_samples_scale = pixel_samples_scale;
+
+		ret.pixel_delta_u = pixel_delta_u;
+		ret.pixel_delta_v = pixel_delta_v;
+		ret.u = u;
+		ret.v = v;
+		ret.w = w;
+
+		ret.defocus_disk_u = defocus_disk_u;
+		ret.defocus_disk_v = defocus_disk_v;
+
+		return ret;
+	}
 };
