@@ -4,18 +4,20 @@ void PixelThread::run()
 {
 	//IETThread::sleep(10);
 
-	Color pixel_color(0, 0, 0);
+	for (int i = 0; i < width; i++) {
+		Color pixel_color(1.0, 0.0, 1.0);
+		for (int sample = 0; sample < camera.samples_per_pixel; sample++) {
+			Ray r = Get_Ray(i, y);
+			pixel_color += Ray_Color(r, camera.max_depth);
+		}
 
-	for (int sample = 0; sample < camera.samples_per_pixel; sample++) {
-				Ray r = Get_Ray(x, y);
-				pixel_color += Ray_Color(r, camera.max_depth);
-			}
-
-	Color scale_color = camera.pixel_samples_scale * pixel_color;
+		Color scale_color = camera.pixel_samples_scale * pixel_color;
+		scanline[i] = PixelColor( scale_color );
+	}
 
 	if (onDone != nullptr)
 	{
-		onDone->OnFinishedTask(id, PixelColor(scale_color));
+		onDone->OnFinishedTask(y, scanline, this);
 	}
 }
 

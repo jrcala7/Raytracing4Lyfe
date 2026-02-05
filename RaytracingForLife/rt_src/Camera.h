@@ -55,6 +55,10 @@ private:
 
 	Point3 defocus_disk_sample() const;
 
+	void RenderOld(const Hittable& world, vector<PixelColor>& pixels);
+
+	void RenderThreaded(const Hittable& world, vector<PixelColor>& pixels);
+
 	CameraProperties ToCameraProperties() {
 		CameraProperties ret;
 

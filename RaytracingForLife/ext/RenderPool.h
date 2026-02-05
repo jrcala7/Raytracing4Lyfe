@@ -13,7 +13,7 @@ public:
 			std::thread::hardware_concurrency() << std::endl;
 	};
 
-	void InitPool(int total);
+	void InitPool(int total, int pixelWidth);
 	void AddPixel(PixelThread* pixel);
 
 	void StartRendering();
@@ -25,7 +25,7 @@ public:
 
 	bool IsRunning()
 	{
-		return currentPixels >= totalPixels;
+		return currentScanline >= totalScanlines;
 	}
 
 	void Wait();
@@ -35,15 +35,14 @@ private:
 	
 
 	void run() override;
-	void OnFinishedTask(int id, PixelColor pixelOut);
+	void OnFinishedTask(int id, const std::vector<PixelColor>& pixelOut, IETThread* threadTask);
 
-	
-
+	int pixelWidth = 10;
 	int workerCount = 20;
 	int currWorkerCount = 0;
 
-	int totalPixels = 1;
-	int currentPixels = 0;
+	int totalScanlines = 1;
+	int currentScanline = 0;
 
 	std::queue<PixelThread*> PixelQueue;
 };

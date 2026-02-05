@@ -6,6 +6,8 @@
 #include "../rt_src/Hittable.h"
 #include "../Utils.h"
 
+#include <vector>
+
 struct CameraProperties {
 	double aspectRatio = 16.0 / 9.0;
 	int width = 480;
@@ -36,16 +38,17 @@ struct CameraProperties {
 
 class IFinishedTask {
 public:
-	virtual void OnFinishedTask(int id, PixelColor pixelOut) = 0;
+	virtual void OnFinishedTask(int id, const std::vector<PixelColor>& pixelOut, IETThread* threadTask) = 0;
 };
 
 class PixelThread : public IETThread {
 public:
-	PixelThread(int _x, int _y, int width,
+	PixelThread(int _x, int _y, int _width,
 		CameraProperties prop, const Hittable& _world) :
 		x(_x), y(_y),
-		camera(prop), world(_world), id (_y * width + _x){
+		camera(prop), world(_world), id (_y * _width + _x), width (_width){
 
+		scanline.resize(_width);
 	}
 
 	void AssignCallback(IFinishedTask* callback) {
@@ -62,6 +65,7 @@ private:
 
 	int x = 0;
 	int y = 0;
+	int width = 0;
 
 	int id = 0;
 
@@ -70,6 +74,7 @@ private:
 
 	Color Ray_Color(const Ray& r, int depth);
 	Ray Get_Ray(int i, int j);
+	std::vector<PixelColor> scanline;
 
 	Vec3 SampleSquare() const {
 		return Vec3(random_double() - 0.5, random_double() - 0.5, 0);

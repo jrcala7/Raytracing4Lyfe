@@ -5,48 +5,20 @@ void Camera::Render(const Hittable& world, vector<PixelColor>& pixels) {
 	Initialize();
 
 	cout << "Rendering Image desu" << endl;
-	pixels.resize(width * height);
-
+	
 	auto start = std::chrono::steady_clock::now();
 
-	for (int j = 0; j < height; j++) {
-		//clog << "\rScanlines remaining " << height - j << ' ' << flush;
-		for (int i = 0; i < width; i++) {
-			Color pixel_color(0, 0, 0);
+	//RenderOld(world, pixels);
 
-			PixelThread* t = new PixelThread(
-				i, j, width,
-				ToCameraProperties(),
-				world
-			);
+	RenderThreaded(world, pixels);
 
-			renderer.AddPixel(t);
-
-			//for (int sample = 0; sample < samples_per_pixel; sample++) {
-			//	Ray r = Get_Ray(i, j);
-			//	pixel_color += Ray_Color(r, max_depth, world);
-			//}
-
-			//Color scale_color = pixel_samples_scale * pixel_color;
-
-			//PixelColor p(scale_color);
-			//pixels[j * width + i] = p;
-		}
-	}
-
-	//
-	renderer.StartRendering();
-
-	renderer.Wait();
-	pixels = renderer.outputPixels;
-
-	for (int j = 0; j < height; j++) {
-		//clog << "\rScanlines remaining " << height - j << ' ' << flush;
-		for (int i = 0; i < width; i++) {
-			int index = j * width + i;
-			pixels[index] = renderer.outputPixels[index];
-		}
-	}
+	//for (int j = 0; j < height; j++) {
+	//	//clog << "\rScanlines remaining " << height - j << ' ' << flush;
+	//	for (int i = 0; i < width; i++) {
+	//		int index = j * width + i;
+	//		pixels[index] = renderer.outputPixels[index];
+	//	}
+	//}
 	auto end = std::chrono::steady_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
@@ -89,7 +61,7 @@ void Camera::Initialize() {
 	defocus_disk_u = u * defocus_radius;
 	defocus_disk_v = v * defocus_radius;
 
-	renderer.InitPool(width * height);
+	renderer.InitPool(height, width);
 }
 
 Color Camera::Ray_Color(const Ray& r, int depth, const Hittable& world) const {
@@ -166,4 +138,56 @@ Point3 Camera::defocus_disk_sample() const {
 	auto p = random_in_unit_disk();
 	return center +
 		(p.x() * defocus_disk_u) + (p.y() * defocus_disk_v);
+}
+
+void Camera::RenderOld(const Hittable& world, vector<PixelColor>& pixels)
+{
+	pixels.resize(width * height);
+	for (int j = 0; j < height; j++) {
+		clog << "\rScanlines remaining " << height - j << ' ' << flush;
+		for (int i = 0; i < width; i++) {
+			Color pixel_color(0, 0, 0);
+
+			PixelThread* t = new PixelThread(
+				i, j, width,
+				ToCameraProperties(),
+				world
+			);
+
+			for (int sample = 0; sample < samples_per_pixel; sample++) {
+				Ray r = Get_Ray(i, j);
+				pixel_color += Ray_Color(r, max_depth, world);
+			}
+
+			Color scale_color = pixel_samples_scale * pixel_color;
+
+			PixelColor p(scale_color);
+			pixels[j * width + i] = p;
+		}
+	}
+
+}
+
+void Camera::RenderThreaded(const Hittable& world, vector<PixelColor>& pixels)
+{
+	pixels.resize(width * height);
+
+	for (int j = 0; j < height; j++) {
+		Color pixel_color(0, 0, 0);
+
+		PixelThread* t = new PixelThread(
+			0, j, width,
+			ToCameraProperties(),
+			world
+		);
+
+		renderer.AddPixel(t);
+	}
+
+	renderer.StartRendering();
+
+	renderer.Wait();
+
+	std::shared_lock<std::shared_mutex> lock(renderer.currPixelMutex);
+	pixels = renderer.outputPixels;
 }

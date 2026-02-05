@@ -1,12 +1,13 @@
 #include "RenderPool.h"
 
-void RenderPool::InitPool(int total)
+void RenderPool::InitPool(int total, int _pixelWidth)
 {
-	totalPixels = total;
-	currentPixels = 0;
+	totalScanlines = total;
+	currentScanline = 0;
+	pixelWidth = _pixelWidth;
 
 	outputPixels.clear();
-	outputPixels.resize(totalPixels);
+	outputPixels.resize(totalScanlines * pixelWidth);
 }
 
 void RenderPool::AddPixel(PixelThread* pixel)
@@ -39,25 +40,29 @@ void RenderPool::run()
 		}
 		else {
 			lock.unlock();
-			std::this_thread::yield();
 		}
 	}
 }
 
-void RenderPool::OnFinishedTask(int id, PixelColor pixelOut)
+void RenderPool::OnFinishedTask(int y, const std::vector<PixelColor>& pixelOut, IETThread* threadTask)
 {
 	{
 		std::unique_lock<std::shared_mutex> lock(currPixelMutex);
-		outputPixels[id] = pixelOut;
-		currentPixels++;
+		for (int i = 0; i < pixelWidth; i++) {
+			outputPixels[y * pixelWidth + i] = pixelOut[i];
+		}
+		
+		currentScanline++;
 		currWorkerCount--;
 
-		//std::clog << "\rScanline done " << id << ": " << currentPixels << "/" << totalPixels << std::flush;
+		std::clog << "\rScanline done " << y << ": " << currentScanline << "/" << totalScanlines << std::flush;
 
-		if (currentPixels >= totalPixels) {
+		if (currentScanline >= totalScanlines) {
 			isRunning = false;
 		}
 	}
+
+	delete threadTask;
 	IsRenderDone.notify_all();
 }
 
@@ -65,6 +70,6 @@ void RenderPool::Wait()
 {
 	std::shared_lock<std::shared_mutex> lock(currPixelMutex);
 	IsRenderDone.wait(lock, [this] {
-		return currentPixels >= totalPixels;
+		return currentScanline >= totalScanlines;
 		});
 }

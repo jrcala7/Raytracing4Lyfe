@@ -128,7 +128,7 @@ void SphereSample() {
 	Camera cam;
 	
 	cam.aspectRatio = 16.0 / 9.0;
-	cam.width = 400;
+	cam.width = 100;
 	cam.samples_per_pixel = 100;
 	cam.max_depth = 50;
 	cam.background = Color(0.7, 0.8, 1.0);
@@ -402,10 +402,10 @@ int main()
 {
 	//RT_WeekendFinalRender();
 	//CheckerSphere();
-	SphereSample();
+	//SphereSample();
 	//NoiseSample();
 	//QuadTest();
 	//SimpleLight();
-	//CornellBox();
+	CornellBox();
 	return 0;
 }
