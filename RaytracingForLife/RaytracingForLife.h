@@ -17,6 +17,12 @@
 #include "rt_src/Sphere.h"
 #include "rt_src/Camera.h"
 
+#include "rt_src/Material.h"
+#include "rt_src/BVH.h"
+#include "rt_src/Checker_Texture.h"
+#include "rt_src/Quad.h"
+
+
 void PrintTestImage() {
 	int width = 256;
 	int height = 256;

@@ -2,10 +2,6 @@
 //
 
 #include "RaytracingForLife.h"
-#include "rt_src/Material.h"
-#include "rt_src/BVH.h"
-#include "rt_src/Checker_Texture.h"
-#include "rt_src/Quad.h"
 
 using namespace std;
 
