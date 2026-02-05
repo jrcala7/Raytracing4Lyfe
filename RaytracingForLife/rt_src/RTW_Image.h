@@ -1,11 +1,8 @@
 #pragma once
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "../stb_image.h"
-
-
 #include <cstdlib>
 #include <iostream>
+#include "../stb_image.h"
 
 class RTW_Image {
 public:
@@ -35,7 +32,7 @@ public:
 
 	~RTW_Image() {
 		delete[] bdata;
-		STBI_FREE(fdata);
+		stbi_image_free(fdata);
 	}
 
 	bool Load(const std::string& filename) {

@@ -41,16 +41,16 @@ public:
 	static const Interval empty, universe;
 };
 
-const Interval Interval::empty = Interval(infinity, -infinity);
-const Interval Interval::universe = Interval(-infinity, infinity);
+inline const Interval Interval::empty = Interval(infinity, -infinity);
+inline const Interval Interval::universe = Interval(-infinity, infinity);
 
-Interval operator+ (const Interval& v, double disp) {
+inline Interval operator+ (const Interval& v, double disp) {
 	return Interval(
 		v.min + disp, v.max + disp
 	);
 }
 
-Interval operator+ (double disp, const Interval& v) {
+inline Interval operator+ (double disp, const Interval& v) {
 	return Interval(
 		v.min + disp, v.max + disp
 	);
