@@ -364,9 +364,18 @@ void CornellBox() {
 		Point3(165, 330, 165),
 		white
 	);
-	//box1 = make_shared<Rot_Y>(box1, 15);
+	box1 = make_shared<Rot_Y>(box1, 15);
 	box1 = make_shared<Translate>(box1, Vec3(265, 0, 295));
 	world.Add(box1);
+
+	shared_ptr<Hittable> box2 = Box(
+		Point3(0, 0, 0),
+		Point3(165, 165, 165),
+		white
+	);
+	box2 = make_shared<Rot_Y>(box2, -18);
+	box2 = make_shared<Translate>(box2, Vec3(130, 0, 65));
+	world.Add(box2);
 
 	Camera cam;
 
@@ -397,10 +406,10 @@ int main()
 {
 	//RT_WeekendFinalRender();
 	//CheckerSphere();
-	//SphereSample();
+	SphereSample();
 	//NoiseSample();
 	//QuadTest();
 	//SimpleLight();
-	CornellBox();
+	//CornellBox();
 	return 0;
 }
