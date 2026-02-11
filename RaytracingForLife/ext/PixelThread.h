@@ -1,10 +1,6 @@
 #pragma once
 #include "IETThread.h"
-#include "../rt_src/Ray.h"
-#include "../rt_src/Color.h"
-#include "../rt_src/Material.h"
-#include "../rt_src/Hittable.h"
-#include "../Utils.h"
+#include "../rt_src/RayFuncs.h"
 
 #include <vector>
 
@@ -75,14 +71,4 @@ private:
 	Color Ray_Color(const Ray& r, int depth);
 	Ray Get_Ray(int i, int j);
 	std::vector<PixelColor> scanline;
-
-	Vec3 SampleSquare() const {
-		return Vec3(random_double() - 0.5, random_double() - 0.5, 0);
-	}
-
-	Point3 defocus_disk_sample() const {
-		auto p = random_in_unit_disk();
-		return camera.center +
-			(p.x() * camera.defocus_disk_u) + (p.y() * camera.defocus_disk_v);
-	}
 };

@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Hittable.h"
-#include "Material.h"
-#include "../Utils.h"
+#include "RayFuncs.h"
 #include <vector>
 
 #include "../ext/RenderPool.h"
@@ -50,10 +48,6 @@ private:
 	Color Ray_Color(const Ray& r, int depth, const Hittable& world) const;
 
 	Ray Get_Ray(int i, int j) const;
-
-	Vec3 SampleSquare() const;
-
-	Point3 defocus_disk_sample() const;
 
 	void RenderOld(const Hittable& world, vector<PixelColor>& pixels);
 
