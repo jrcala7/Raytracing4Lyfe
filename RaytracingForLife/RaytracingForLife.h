@@ -21,6 +21,7 @@
 #include "rt_src/BVH.h"
 #include "rt_src/Checker_Texture.h"
 #include "rt_src/Quad.h"
+#include "rt_src/Triangle.h"
 
 
 void PrintTestImage() {
