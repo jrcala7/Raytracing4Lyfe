@@ -19,7 +19,9 @@ public:
 		return false;
 	}
 
-	virtual Color Emitted(double u, double v, const Point3& p) const {
+	virtual Color Emitted(const Ray& r_in, const Hit_Record& rec,
+		double u, double v, const Point3& p
+	) const {
 		return Color(0, 0, 0);
 	}
 
@@ -162,7 +164,9 @@ public:
 
 	DiffuseLight(const Color& emit) : tex(make_shared<Solid_Color>(emit)) {}
 
-	Color Emitted(double u, double v, const Point3& p) const override {
+	Color Emitted(const Ray& r_in, const Hit_Record& rec, double u, double v, const Point3& p) const override {
+		if (!rec.front_face)
+			return Color(0, 0, 0);
 		return tex->value(u, v, p);
 	}
 

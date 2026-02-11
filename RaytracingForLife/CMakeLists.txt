@@ -54,7 +54,7 @@ add_executable (RaytracingForLife
 "ext/IETThread.h" "ext/IETThread.cpp" 
 "ext/PixelThread.h" "ext/PixelThread.cpp" 
 "ext/RenderPool.h" "ext/RenderPool.cpp" 
-"rt_src/Triangle.h" "rt_src/Model3D.h" "rt_src/Model3D.cpp" "rt_src/RayFuncs.h" "rt_src/ONB.h")
+"rt_src/Triangle.h" "rt_src/Model3D.h" "rt_src/Model3D.cpp" "rt_src/RayFuncs.h" "rt_src/ONB.h" "rt_src/PDF.h")
 
 target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS})
 

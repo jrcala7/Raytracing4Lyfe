@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Ray.h"
+#include "PDF.h"
 #include "Color.h"
 #include "Material.h"
 #include "Hittable.h"
@@ -92,26 +93,33 @@ inline Color Ray_ColorFunc(const Ray& r, int depth, const Hittable& world,
 	Color attenuation;
 	double pdf_val;
 
-	Color emission = rec.mat->Emitted(rec.u, rec.v, rec.p);
+	Color emission = rec.mat->Emitted(r, rec, rec.u, rec.v, rec.p);
 
 	if (!rec.mat->Scatter(r, rec, attenuation, scattered, pdf_val))
 		return emission;
 
-	auto on_light = Point3(random_double(213, 343), 554, random_double(227, 332));
-	auto to_light = on_light - rec.p;
-	auto distance_squared = to_light.length_squared();
-	to_light = unit_vector(to_light);
+	//Sample lights
+	//{
+	//auto on_light = Point3(random_double(213, 343), 554, random_double(227, 332));
+	//auto to_light = on_light - rec.p;
+	//auto distance_squared = to_light.length_squared();
+	//to_light = unit_vector(to_light);
 
-	if (dot(to_light, rec.Normal) < 0)
-		return emission;
+	//if (dot(to_light, rec.Normal) < 0)
+	//	return emission;
 
-	double light_area = (343 - 213) * (332 - 227);
-	auto light_cosine = std::fabs(to_light.y());
-	if (light_cosine < 0.000001)
-		return emission;
+	//double light_area = (343 - 213) * (332 - 227);
+	//auto light_cosine = std::fabs(to_light.y());
+	//if (light_cosine < 0.000001)
+	//	return emission;
 
-	pdf_val = distance_squared / (light_cosine * light_area);
-	scattered = Ray(rec.p, to_light, r.time());
+	//pdf_val = distance_squared / (light_cosine * light_area);
+	//scattered = Ray(rec.p, to_light, r.time());
+	//}
+
+	Cos_PDF surf_pdf(rec.Normal);
+	scattered = Ray(rec.p, surf_pdf.Generate(), r.time());
+	pdf_val = surf_pdf.value(scattered.direction());
 
 	double scatter_pdf = rec.mat->Scattering_PDF(r, rec, scattered);
 	//pdf_val = scatter_pdf;
