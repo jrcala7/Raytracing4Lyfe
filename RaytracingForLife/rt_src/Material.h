@@ -152,3 +152,25 @@ public:
 private:
 	shared_ptr<Texture> tex;
 };
+
+class Isotropic : public Material {
+public:
+	Isotropic(const Color& albedo) : tex(make_shared<Solid_Color>(albedo)) {}
+	Isotropic(shared_ptr<Texture> _tex) : tex(_tex) {}
+
+	bool Scatter(
+		const Ray& r_in,
+		const Hit_Record& rec,
+		Color& attenuation,
+		Ray& scattered
+	) const override {
+
+		scattered = Ray(rec.p, random_unit_vector(), r_in.time());
+		attenuation = tex->value(rec.u, rec.v, rec.p);
+
+		return true;
+	}
+
+private:
+	shared_ptr<Texture> tex;
+};
