@@ -2,6 +2,7 @@
 
 #include "Color.h"
 #include "Hittable.h"
+#include "ONB.h"
 #include "Texture.h"
 
 class Material {
@@ -12,13 +13,18 @@ public:
 		const Ray& r_in,
 		const Hit_Record& rec,
 		Color& attenuation,
-		Ray& scattered
+		Ray& scattered,
+		double& pdf
 	) const {
 		return false;
 	}
 
 	virtual Color Emitted(double u, double v, const Point3& p) const {
 		return Color(0, 0, 0);
+	}
+
+	virtual double Scattering_PDF(const Ray& r_in, const Hit_Record& rec, const Ray& scattered) const{
+		return 0;
 	}
 };
 
@@ -32,10 +38,11 @@ public :
 		const Ray& r_in,
 		const Hit_Record& rec,
 		Color& attenuation,
-		Ray& scattered
+		Ray& scattered,
+		double& pdf
 	) const override {
-		
-		auto scatter_dir = rec.Normal + random_unit_vector();
+		ONB uvw = (rec.Normal);
+		auto scatter_dir = uvw.Transform(random_cos_direction());
 		
 		if(scatter_dir.near_zero()) {
 			scatter_dir = rec.Normal;
@@ -43,8 +50,16 @@ public :
 		
 		scattered = Ray(rec.p, scatter_dir, r_in.time());
 		attenuation = tex->value(rec.u, rec.v, rec.p);
+		pdf = dot(uvw.w(), scattered.direction() / pi);
 		
 		return true;
+	}
+
+	double Scattering_PDF(const Ray& r_in, const Hit_Record& rec, const Ray& scattered) const override {
+		//auto cos_theta = dot(rec.Normal, unit_vector(scattered.direction()));
+		//return cos_theta < 0 ? 0 : cos_theta / pi;
+
+		return 1 / (2 * pi);
 	}
 
 private:
@@ -62,7 +77,8 @@ public:
 		const Ray& r_in,
 		const Hit_Record& rec,
 		Color& attenuation,
-		Ray& scattered
+		Ray& scattered,
+		double& pdf
 	) const override {
 
 		Vec3 refl = reflect(
@@ -95,7 +111,8 @@ public:
 		const Ray& r_in,
 		const Hit_Record& rec,
 		Color& attenuation,
-		Ray& scattered
+		Ray& scattered,
+		double& pdf
 	) const override {
 
 		attenuation = Color(1.0, 1.0, 1.0);
@@ -162,13 +179,22 @@ public:
 		const Ray& r_in,
 		const Hit_Record& rec,
 		Color& attenuation,
-		Ray& scattered
+		Ray& scattered,
+		double& pdf
 	) const override {
 
 		scattered = Ray(rec.p, random_unit_vector(), r_in.time());
 		attenuation = tex->value(rec.u, rec.v, rec.p);
+		pdf = 1 / (4 * pi);
 
 		return true;
+	}
+
+	double Scattering_PDF(const Ray& r_in, const Hit_Record& rec, const Ray& scattered) const override {
+		//auto cos_theta = dot(rec.Normal, unit_vector(scattered.direction()));
+		//return cos_theta < 0 ? 0 : cos_theta / pi;
+
+		return 1 / (4 * pi);
 	}
 
 private:

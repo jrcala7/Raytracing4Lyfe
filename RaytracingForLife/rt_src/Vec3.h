@@ -190,3 +190,17 @@ inline Vec3 refract(
 
 	return r_out_perp + r_out_parallel;
 }
+
+inline Vec3 random_cos_direction() {
+	auto r1 = random_double();
+	auto r2 = random_double();
+
+	auto r2root = std::sqrt(r2);
+
+	auto phi = 2 * pi * r1;
+	auto x = std::cos(phi) * r2root;
+	auto y = std::sin(phi) * r2root;
+	auto z = std::sqrt(1 - r2);
+
+	return Vec3(x, y, z);
+}

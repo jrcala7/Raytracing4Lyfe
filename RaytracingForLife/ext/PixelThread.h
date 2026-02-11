@@ -30,6 +30,9 @@ struct CameraProperties {
 
 	Vec3 defocus_disk_u;
 	Vec3 defocus_disk_v;
+
+	int sqrt_spp;
+	double recip_sqrt_spp;
 };
 
 class IFinishedTask {
@@ -69,6 +72,6 @@ private:
 	CameraProperties camera;
 
 	Color Ray_Color(const Ray& r, int depth);
-	Ray Get_Ray(int i, int j);
+	Ray Get_Ray(int i, int j, int si, int sj);
 	std::vector<PixelColor> scanline;
 };

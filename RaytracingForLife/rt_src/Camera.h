@@ -43,11 +43,14 @@ private:
 	Vec3 defocus_disk_u;
 	Vec3 defocus_disk_v;
 
+	int sqrt_spp;
+	double recip_sqrt_spp;
+
 	void Initialize();
 
 	Color Ray_Color(const Ray& r, int depth, const Hittable& world) const;
 
-	Ray Get_Ray(int i, int j) const;
+	Ray Get_Ray(int i, int j, int si, int sj) const;
 
 	void RenderOld(const Hittable& world, vector<PixelColor>& pixels);
 
@@ -83,6 +86,9 @@ private:
 
 		ret.defocus_disk_u = defocus_disk_u;
 		ret.defocus_disk_v = defocus_disk_v;
+
+		ret.sqrt_spp = sqrt_spp;
+		ret.recip_sqrt_spp = recip_sqrt_spp;
 
 		return ret;
 	}

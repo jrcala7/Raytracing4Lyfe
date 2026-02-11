@@ -377,9 +377,9 @@ void CornellBox() {
 	Camera cam;
 
 	cam.aspectRatio = 1.0;
-	cam.width = 800;
-	cam.samples_per_pixel = 40000;
-	cam.max_depth = 60;
+	cam.width = 600;
+	cam.samples_per_pixel = 100;
+	cam.max_depth = 50;
 	cam.background = Color(0.0, 0.0, 0.0);
 
 	cam.vfov = 40;
@@ -397,6 +397,67 @@ void CornellBox() {
 	SaveImage(sdArr, cam.width, cam.height, "CornellBox.png");
 
 	cout << "CornellBox.png" << endl;
+}
+
+void CornellBox2() {
+	Hittable_List world;
+
+	auto red = make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
+	auto white = make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
+	auto green = make_shared<Lambertian>(Color(0.12, 0.45, 0.15));
+	auto light = make_shared<DiffuseLight>(Color(15, 15, 15));
+
+	// Cornell box sides
+	world.Add(make_shared<Quad>(Point3(555, 0, 0), Vec3(0, 0, 555), Vec3(0, 555, 0), green));
+	world.Add(make_shared<Quad>(Point3(0, 0, 555), Vec3(0, 0, -555), Vec3(0, 555, 0), red));
+	world.Add(make_shared<Quad>(Point3(0, 555, 0), Vec3(555, 0, 0), Vec3(0, 0, 555), white));
+	world.Add(make_shared<Quad>(Point3(0, 0, 555), Vec3(555, 0, 0), Vec3(0, 0, -555), white));
+	world.Add(make_shared<Quad>(Point3(555, 0, 555), Vec3(-555, 0, 0), Vec3(0, 555, 0), white));
+
+	// Light
+	world.Add(make_shared<Quad>(Point3(213, 554, 227), Vec3(130, 0, 0), Vec3(0, 0, 105), light));
+
+	shared_ptr<Hittable> box1 = Box(
+		Point3(0, 0, 0),
+		Point3(165, 330, 165),
+		white
+	);
+	box1 = make_shared<Rot_Y>(box1, 15);
+	box1 = make_shared<Translate>(box1, Vec3(265, 0, 295));
+	world.Add(box1);
+
+	shared_ptr<Hittable> box2 = Box(
+		Point3(0, 0, 0),
+		Point3(165, 165, 165),
+		white
+	);
+	box2 = make_shared<Rot_Y>(box2, -18);
+	box2 = make_shared<Translate>(box2, Vec3(130, 0, 65));
+	world.Add(box2);
+
+	Camera cam;
+
+	cam.aspectRatio = 1.0;
+	cam.width = 600;
+	cam.samples_per_pixel = 100;
+	cam.max_depth = 50;
+	cam.background = Color(0.0, 0.0, 0.0);
+
+	cam.vfov = 40;
+	cam.lookfrom = Point3(278, 278, -800);
+	cam.lookat = Point3(278, 278, 0);
+	cam.vup = Vec3(0, 1, 0);
+
+	cam.defocus_angle = 0;
+
+	vector<PixelColor> image;
+	cam.Render(world, image);
+
+	auto sdArr = ConvertToDoubleVector(image);
+
+	SaveImage(sdArr, cam.width, cam.height, "CornellBox2.png");
+
+	cout << "CornellBox2.png" << endl;
 }
 
 void cornell_smoke() {
@@ -429,7 +490,7 @@ void cornell_smoke() {
 
 	cam.aspectRatio = 1.0;
 	cam.width = 600;
-	cam.samples_per_pixel = 200;
+	cam.samples_per_pixel = 10;
 	cam.max_depth = 50;
 	cam.background = Color(0, 0, 0);
 
@@ -626,7 +687,8 @@ int main()
 	//QuadTest();
 	//SimpleLight();
 	//CornellBox();
-	TriTest();
+	CornellBox2();
+	//TriTest();
 	//cornell_smoke();
 	//final_scene2(800, 10000, 40);
 	return 0;

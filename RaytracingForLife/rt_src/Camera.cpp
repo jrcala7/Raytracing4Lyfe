@@ -29,6 +29,9 @@ void Camera::Initialize() {
 	height = int(width / aspectRatio);
 	height = (height < 1) ? 1 : height;
 
+	sqrt_spp = int(std::sqrt(samples_per_pixel));
+	recip_sqrt_spp = 1.0 / sqrt_spp;
+
 	pixel_samples_scale = 1.0 / samples_per_pixel;
 
 	center = lookfrom;
@@ -68,9 +71,10 @@ Color Camera::Ray_Color(const Ray& r, int depth, const Hittable& world) const {
 	return Ray_ColorFunc(r, depth, world, background);
 }
 
-Ray Camera::Get_Ray(int i, int j) const {
+Ray Camera::Get_Ray(int i, int j, int si, int sj) const {
 	return GetRayFunc(
 		i, j,
+		si, sj, recip_sqrt_spp,
 		pixel00_loc,
 		pixel_delta_u, pixel_delta_v,
 		defocus_angle,
@@ -93,9 +97,11 @@ void Camera::RenderOld(const Hittable& world, vector<PixelColor>& pixels)
 				world
 			);
 
-			for (int sample = 0; sample < samples_per_pixel; sample++) {
-				Ray r = Get_Ray(i, j);
-				pixel_color += Ray_Color(r, max_depth, world);
+			for (int sj = 0; sj < sqrt_spp; sj++) {
+				for (int si = 0; si < sqrt_spp; si++) {
+					Ray r = Get_Ray(i, j, si, sj);
+					pixel_color += Ray_Color(r, max_depth, world);
+				}
 			}
 
 			Color scale_color = pixel_samples_scale * pixel_color;
