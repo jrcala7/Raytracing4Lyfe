@@ -65,79 +65,18 @@ void Camera::Initialize() {
 }
 
 Color Camera::Ray_Color(const Ray& r, int depth, const Hittable& world) const {
-
-	if (depth <= 0) {
-		return Color(0, 0, 0);
-	}
-
-	/*Old Implem
-	Hit_Record rec;
-
-	if (world.Hit(r, Interval(0.001, infinity), rec)) {
-	Ray scattered;
-	Color attenuation;
-
-	if(rec.mat->Scatter(r, rec, attenuation, scattered)) {
-	return attenuation *
-	Ray_Color(
-	scattered,
-	depth - 1,
-	world
-	);
-	}
-
-	return Color(0, 0, 0);
-	}
-
-	Vec3 Unit_Dir = unit_vector(r.direction());
-	auto a = 0.5 * (Unit_Dir.y() + 1.0);
-
-	return (1.0 - a) * Color(1.0, 1.0, 1.0) + a * Color(0.5, 0.7, 1.0);
-	*/
-
-	Hit_Record rec;
-	//If ray hits nothing return BG
-	if (!world.Hit(
-		r, Interval(0.001, infinity), rec)
-		) {
-		return background;
-	}
-
-	Ray scattered;
-	Color attenuation;
-
-	Color emission = rec.mat->Emitted(rec.u, rec.v, rec.p);
-
-	if (!rec.mat->Scatter(r, rec, attenuation, scattered))
-		return emission;
-
-	Color scatter_color = attenuation * Ray_Color(scattered, depth - 1, world);
-
-	return emission + scatter_color;
+	return Ray_ColorFunc(r, depth, world, background);
 }
 
 Ray Camera::Get_Ray(int i, int j) const {
-	auto offset = SampleSquare();
-
-	auto pixelSample = pixel00_loc +
-		((i + offset.x()) * pixel_delta_u) +
-		((j + offset.y()) * pixel_delta_v);
-
-	auto ray_origin = defocus_angle <= 0 ? center : defocus_disk_sample();
-	auto ray_direction = pixelSample - ray_origin;
-	auto ray_time = random_double();
-
-	return Ray(ray_origin, ray_direction, ray_time);
-}
-
-Vec3 Camera::SampleSquare() const {
-	return Vec3(random_double() - 0.5, random_double() - 0.5, 0);
-}
-
-Point3 Camera::defocus_disk_sample() const {
-	auto p = random_in_unit_disk();
-	return center +
-		(p.x() * defocus_disk_u) + (p.y() * defocus_disk_v);
+	return GetRayFunc(
+		i, j,
+		pixel00_loc,
+		pixel_delta_u, pixel_delta_v,
+		defocus_angle,
+		center,
+		defocus_disk_u, defocus_disk_v
+	);
 }
 
 void Camera::RenderOld(const Hittable& world, vector<PixelColor>& pixels)
