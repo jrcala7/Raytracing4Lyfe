@@ -408,11 +408,16 @@ void TriTest() {
 	auto u_mat = make_shared<Lambertian>(Color(1.0, 0.5, 0.0));
 	auto d_mat = make_shared<Lambertian>(Color(0.2, 0.8, 0.8));
 
+	auto tex = make_shared<ImageTexture>("zukiss.png");
+	auto surf = make_shared<Lambertian>(tex);
+
+	Model3D cube;
+	
+	cube.LoadModel("myCube.obj", surf, 2.0);
+
 	//Tris
 	world.Add(
-		make_shared<Triangle>(
-			Point3(-3, -2, 5), Point3(-2, -2, 0), Point3(3, -2, 1), l_mat
-		)
+		cube.modelTris
 	);
 	/*
 	world.Add(
@@ -462,13 +467,16 @@ void TriTest() {
 	cam.defocus_angle = 0;
 
 	vector<PixelColor> image;
+
+	world = Hittable_List(make_shared<BVH_Node>(world));
+
 	cam.Render(world, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
-	SaveImage(sdArr, cam.width, cam.height, "TriTest.png");
+	SaveImage(sdArr, cam.width, cam.height, "RabbitTest.png");
 
-	cout << "TriTest.png" << endl;
+	cout << "RabbitTest.png" << endl;
 }
 
 int main()
