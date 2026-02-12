@@ -451,15 +451,15 @@ void CornellBox2() {
 	box2 = make_shared<Translate>(box2, Vec3(130, 0, 65));
 	world.Add(box2);
 
-	Model3D cube;
+	//Model3D cube;
 
-	cube.LoadModel("bunny.obj", aluminum, 800.0);
-	cube.ModelTranslate(300, 200);
+	//cube.LoadModel("bunny.obj", aluminum, 800.0);
+	//cube.ModelTranslate(300, 200);
 
-	////Tris
-	world.Add(
-		cube.modelTris
-	);
+	//////Tris
+	//world.Add(
+	//	cube.modelTris
+	//);
 
 	//Light itself
 	Hittable_List lights;
@@ -571,6 +571,10 @@ void final_scene2(int image_width, int samples_per_pixel, int max_depth) {
 	//Lights
 	Hittable_List lights;
 
+	auto empty_material = shared_ptr<Material>();
+	lights.Add(
+		make_shared<Quad>(Point3(0, 554, 0), Vec3(-130, 0, 0), Vec3(0, 0, -105), empty_material));
+
 	world.Add(make_shared<BVH_Node>(boxes1));
 
 	auto light = make_shared<DiffuseLight>(Color(7, 7, 7));
@@ -659,37 +663,6 @@ void TriTest() {
 	world.Add(
 		cube.modelTris
 	);
-	/*
-	world.Add(
-		make_shared<Quad>(
-			Point3(-3, -2, 5), Vec3(0, 0, -4), Vec3(0, 4, 0), l_mat
-		)
-	);
-
-	world.Add(
-		make_shared<Quad>(
-			Point3(-2, -2, 0), Vec3(4, 0, 0), Vec3(0, 4, 0), b_mat
-		)
-	);
-
-	world.Add(
-		make_shared<Quad>(
-			Point3(3, -2, 1), Vec3(0, 0, 4), Vec3(0, 4, 0), r_mat
-		)
-	);
-
-	world.Add(
-		make_shared<Quad>(
-			Point3(-2, 3, 1), Vec3(4, 0, 0), Vec3(0, 0, 4), u_mat
-		)
-	);
-
-	world.Add(
-		make_shared<Quad>(
-			Point3(-2, -3, 5), Vec3(4, 0, 0), Vec3(0, 0, -4), d_mat
-		)
-	);
-	*/
 
 	Camera cam;
 
@@ -719,6 +692,71 @@ void TriTest() {
 	cout << "RabbitTest.png" << endl;
 }
 
+void RabbitScene() {
+	Hittable_List world;
+	//Lights
+	Hittable_List lights;
+
+	//Colors
+	auto l_mat = make_shared<Lambertian>(Color(1.0, 0.2, 0.2));
+	auto b_mat = make_shared<Lambertian>(Color(0.4, 0.8, 0.4));
+	auto r_mat = make_shared<Lambertian>(Color(0.2, 0.2, 1.0));
+	auto u_mat = make_shared<Lambertian>(Color(1.0, 0.5, 0.0));
+	auto d_mat = make_shared<Lambertian>(Color(0.2, 0.8, 0.8));
+
+	auto tex = make_shared<ImageTexture>("zukiss.png");
+	auto surf = make_shared<Lambertian>(tex);
+
+	Model3D cube;
+
+	cube.LoadModel("bunny.obj", b_mat, 45.0);
+	
+
+	//Tris
+	world.Add(
+		cube.modelTris
+	);
+
+	auto material1 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+	//auto material1 = make_shared<Dielectric>(1.5);
+	world.Add(make_shared<Sphere>(Point3(0, -40, 0), 40, material1));
+
+	auto white = make_shared<Lambertian>(Color(.73, .73, .73));
+	auto box1 = make_shared<Sphere>(Point3(0, -40, 0), 45, material1);
+	world.Add(make_shared<Constant_Medium>(box1, 0.01, Color(0, 0, 0)));
+
+	auto empty_material = shared_ptr<Material>();
+	lights.Add(
+		make_shared<Quad>(Point3(0, 554, 0), Vec3(-130, 0, 0), Vec3(0, 0, -105), empty_material));
+
+	Camera cam;
+
+	cam.aspectRatio = 1.0;
+	cam.width = 1200;
+	cam.samples_per_pixel = 10000;
+	cam.max_depth = 50;
+	cam.background = Color(0.4, 0.4, 1.0);
+
+	cam.vfov = 80;
+	cam.lookfrom = Point3(0, 10, 9);
+	cam.lookat = Point3(-1.5, 4, 0);
+	cam.vup = Vec3(0, 1, 0);
+
+	cam.defocus_angle = 0;
+
+	vector<PixelColor> image;
+
+	world = Hittable_List(make_shared<BVH_Node>(world));
+
+	cam.Render(world, lights, image);
+
+	auto sdArr = ConvertToDoubleVector(image);
+
+	SaveImage(sdArr, cam.width, cam.height, "RabbitScene.png");
+
+	cout << "RabbitScene.png" << endl;
+}
+
 int main()
 {
 	//RT_WeekendFinalRender();
@@ -728,9 +766,10 @@ int main()
 	//QuadTest();
 	//SimpleLight();
 	//CornellBox();
-	CornellBox2();
+	//CornellBox2();
 	//TriTest();
 	//cornell_smoke();
-	//final_scene2(800, 10000, 40);
+	//final_scene2(1200, 10000, 50);
+	RabbitScene();
 	return 0;
 }
