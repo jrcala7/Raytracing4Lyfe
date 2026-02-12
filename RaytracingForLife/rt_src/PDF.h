@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Hittable_List.h"
 #include "ONB.h"
 
 class PDF {
@@ -45,5 +45,25 @@ public:
 
 private:
 	ONB uvw;
+
+};
+
+class Hittable_PDF : public PDF {
+
+public:
+	Hittable_PDF(const Hittable& objs, const Point3& _origin) :
+		objects(objs), origin(_origin) { }
+	
+	double value(const Vec3& dir) const override {
+		return objects.PDF_Value(origin, dir);
+	}
+
+	Vec3 Generate() const override {
+		return objects.Random(origin);
+	}
+
+private:
+	const Hittable& objects;
+	Point3 origin;
 
 };

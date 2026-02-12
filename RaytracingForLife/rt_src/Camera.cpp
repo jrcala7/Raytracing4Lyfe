@@ -1,7 +1,7 @@
 #include "Camera.h"
 
 //Camera Propertiesw
-void Camera::Render(const Hittable& world, vector<PixelColor>& pixels) {
+void Camera::Render(const Hittable& world, const Hittable& lights, vector<PixelColor>& pixels) {
 	Initialize();
 
 	cout << "Rendering Image desu" << endl;
@@ -10,7 +10,7 @@ void Camera::Render(const Hittable& world, vector<PixelColor>& pixels) {
 
 	//RenderOld(world, pixels);
 
-	RenderThreaded(world, pixels);
+	RenderThreaded(world, lights, pixels);
 
 	//for (int j = 0; j < height; j++) {
 	//	//clog << "\rScanlines remaining " << height - j << ' ' << flush;
@@ -67,8 +67,8 @@ void Camera::Initialize() {
 	renderer.InitPool(height, width);
 }
 
-Color Camera::Ray_Color(const Ray& r, int depth, const Hittable& world) const {
-	return Ray_ColorFunc(r, depth, world, background);
+Color Camera::Ray_Color(const Ray& r, int depth, const Hittable& world, const Hittable& lights) const {
+	return Ray_ColorFunc(r, depth, world, lights, background);
 }
 
 Ray Camera::Get_Ray(int i, int j, int si, int sj) const {
@@ -83,7 +83,7 @@ Ray Camera::Get_Ray(int i, int j, int si, int sj) const {
 	);
 }
 
-void Camera::RenderOld(const Hittable& world, vector<PixelColor>& pixels)
+void Camera::RenderOld(const Hittable& world, const Hittable& lights, vector<PixelColor>& pixels)
 {
 	pixels.resize(width * height);
 	for (int j = 0; j < height; j++) {
@@ -94,13 +94,14 @@ void Camera::RenderOld(const Hittable& world, vector<PixelColor>& pixels)
 			PixelThread* t = new PixelThread(
 				i, j, width,
 				ToCameraProperties(),
-				world
+				world,
+				lights
 			);
 
 			for (int sj = 0; sj < sqrt_spp; sj++) {
 				for (int si = 0; si < sqrt_spp; si++) {
 					Ray r = Get_Ray(i, j, si, sj);
-					pixel_color += Ray_Color(r, max_depth, world);
+					pixel_color += Ray_Color(r, max_depth, world, lights);
 				}
 			}
 
@@ -113,7 +114,7 @@ void Camera::RenderOld(const Hittable& world, vector<PixelColor>& pixels)
 
 }
 
-void Camera::RenderThreaded(const Hittable& world, vector<PixelColor>& pixels)
+void Camera::RenderThreaded(const Hittable& world, const Hittable& lights, vector<PixelColor>& pixels)
 {
 	pixels.resize(width * height);
 
@@ -123,7 +124,8 @@ void Camera::RenderThreaded(const Hittable& world, vector<PixelColor>& pixels)
 		PixelThread* t = new PixelThread(
 			0, j, width,
 			ToCameraProperties(),
-			world
+			world,
+			lights
 		);
 
 		renderer.AddPixel(t);

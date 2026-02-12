@@ -9,6 +9,8 @@ using namespace std;
 void RT_WeekendFinalRender() {
 	// World
 	Hittable_List world;
+	//Lights
+	Hittable_List lights;
 
 	auto checker = make_shared<Checker_Texture>(
 		0.32,
@@ -75,7 +77,7 @@ void RT_WeekendFinalRender() {
 	camera.defocus_angle = 0.6;
 	camera.focus_dist = 10.0;
 
-	camera.Render(world, image);
+	camera.Render(world, lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
@@ -86,6 +88,8 @@ void RT_WeekendFinalRender() {
 
 void CheckerSphere() {
 	Hittable_List world;
+	//Lights
+	Hittable_List lights;
 
 	auto checker = make_shared<Checker_Texture>(
 		0.32,
@@ -112,7 +116,7 @@ void CheckerSphere() {
 
 	camera.defocus_angle = 0.;
 
-	camera.Render(world, image);
+	camera.Render(world, lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
@@ -125,6 +129,9 @@ void SphereSample() {
 	auto tex = make_shared<ImageTexture>("zukiss.png");
 	auto surf = make_shared<Lambertian>(tex);
 	auto globe = make_shared<Sphere>(Point3(0, 0, 0), 2.0, surf);
+
+	//Lights
+	Hittable_List lights;
 
 	Camera cam;
 	
@@ -142,7 +149,7 @@ void SphereSample() {
 	cam.defocus_angle = 0;
 
 	vector<PixelColor> image;
-	cam.Render(Hittable_List(globe), image);
+	cam.Render(Hittable_List(globe), lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
@@ -153,6 +160,8 @@ void SphereSample() {
 
 void NoiseSample() {
 	Hittable_List world;
+	//Lights
+	Hittable_List lights;
 
 	auto pertex = make_shared<NoiseTexture>(4.0);
 	world.Add(
@@ -185,7 +194,7 @@ void NoiseSample() {
 	cam.defocus_angle = 0;
 
 	vector<PixelColor> image;
-	cam.Render(world, image);
+	cam.Render(world, lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
@@ -196,6 +205,8 @@ void NoiseSample() {
 
 void QuadTest() {
 	Hittable_List world;
+	//Lights
+	Hittable_List lights;
 
 	//Colors
 	auto l_mat = make_shared<Lambertian>(Color(1.0, 0.2, 0.2));
@@ -251,7 +262,7 @@ void QuadTest() {
 	cam.defocus_angle = 0;
 
 	vector<PixelColor> image;
-	cam.Render(world, image);
+	cam.Render(world, lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
@@ -262,6 +273,8 @@ void QuadTest() {
 
 void SimpleLight() {
 	Hittable_List world;
+	//Lights
+	Hittable_List lights;
 
 	auto pertex = make_shared<NoiseTexture>(4.0);
 	world.Add(
@@ -303,7 +316,7 @@ void SimpleLight() {
 	cam.defocus_angle = 0;
 
 	vector<PixelColor> image;
-	cam.Render(world, image);
+	cam.Render(world, lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
@@ -314,6 +327,8 @@ void SimpleLight() {
 
 void CornellBox() {
 	Hittable_List world;
+	//Lights
+	Hittable_List lights;
 
 	auto red = make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
 	auto white = make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
@@ -390,7 +405,7 @@ void CornellBox() {
 	cam.defocus_angle = 0;
 
 	vector<PixelColor> image;
-	cam.Render(world, image);
+	cam.Render(world, lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
@@ -401,6 +416,8 @@ void CornellBox() {
 
 void CornellBox2() {
 	Hittable_List world;
+	//Lights
+	//Hittable_List lights;
 
 	auto red = make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
 	auto white = make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
@@ -416,6 +433,9 @@ void CornellBox2() {
 
 	// Light
 	world.Add(make_shared<Quad>(Point3(213, 554, 227), Vec3(130, 0, 0), Vec3(0, 0, 105), light));
+	//Light itself
+	auto empty_material = shared_ptr<Material>();
+	Quad lightObj(Point3(213, 554, 227), Vec3(130, 0, 0), Vec3(0, 0, 105), empty_material);
 
 	shared_ptr<Hittable> box1 = Box(
 		Point3(0, 0, 0),
@@ -439,7 +459,7 @@ void CornellBox2() {
 
 	cam.aspectRatio = 1.0;
 	cam.width = 600;
-	cam.samples_per_pixel = 100;
+	cam.samples_per_pixel = 10;
 	cam.max_depth = 50;
 	cam.background = Color(0.0, 0.0, 0.0);
 
@@ -451,7 +471,7 @@ void CornellBox2() {
 	cam.defocus_angle = 0;
 
 	vector<PixelColor> image;
-	cam.Render(world, image);
+	cam.Render(world, lightObj, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
@@ -462,6 +482,8 @@ void CornellBox2() {
 
 void cornell_smoke() {
 	Hittable_List world;
+	//Lights
+	Hittable_List lights;
 
 	auto red = make_shared<Lambertian>(Color(.65, .05, .05));
 	auto white = make_shared<Lambertian>(Color(.73, .73, .73));
@@ -502,7 +524,7 @@ void cornell_smoke() {
 	cam.defocus_angle = 0;
 
 	vector<PixelColor> image;
-	cam.Render(world, image);
+	cam.Render(world, lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
@@ -531,6 +553,8 @@ void final_scene2(int image_width, int samples_per_pixel, int max_depth) {
 	}
 
 	Hittable_List world;
+	//Lights
+	Hittable_List lights;
 
 	world.Add(make_shared<BVH_Node>(boxes1));
 
@@ -588,7 +612,7 @@ void final_scene2(int image_width, int samples_per_pixel, int max_depth) {
 	cam.defocus_angle = 0;
 
 	vector<PixelColor> image;
-	cam.Render(world, image);
+	cam.Render(world, lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 
@@ -599,6 +623,8 @@ void final_scene2(int image_width, int samples_per_pixel, int max_depth) {
 
 void TriTest() {
 	Hittable_List world;
+	//Lights
+	Hittable_List lights;
 
 	//Colors
 	auto l_mat = make_shared<Lambertian>(Color(1.0, 0.2, 0.2));
@@ -669,7 +695,7 @@ void TriTest() {
 
 	world = Hittable_List(make_shared<BVH_Node>(world));
 
-	cam.Render(world, image);
+	cam.Render(world, lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 

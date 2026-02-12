@@ -43,9 +43,9 @@ public:
 class PixelThread : public IETThread {
 public:
 	PixelThread(int _x, int _y, int _width,
-		CameraProperties prop, const Hittable& _world) :
+		CameraProperties prop, const Hittable& _world, const Hittable& _lights) :
 		x(_x), y(_y),
-		camera(prop), world(_world), id (_y * _width + _x), width (_width){
+		camera(prop), world(_world), lights(_lights), id (_y * _width + _x), width (_width){
 
 		scanline.resize(_width);
 	}
@@ -69,6 +69,8 @@ private:
 	int id = 0;
 
 	const Hittable& world;
+	const Hittable& lights;
+
 	CameraProperties camera;
 
 	Color Ray_Color(const Ray& r, int depth);

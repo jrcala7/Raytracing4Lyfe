@@ -27,7 +27,7 @@ public:
 	double focus_dist = 10;
 
 	//Camera Propertiesw
-	void Render(const Hittable& world, vector<PixelColor>& pixels);;
+	void Render(const Hittable& world, const Hittable& lights, vector<PixelColor>& pixels);;
 
 private:
 	RenderPool renderer;
@@ -48,13 +48,13 @@ private:
 
 	void Initialize();
 
-	Color Ray_Color(const Ray& r, int depth, const Hittable& world) const;
+	Color Ray_Color(const Ray& r, int depth, const Hittable& world, const Hittable& lights) const;
 
 	Ray Get_Ray(int i, int j, int si, int sj) const;
 
-	void RenderOld(const Hittable& world, vector<PixelColor>& pixels);
+	void RenderOld(const Hittable& world, const Hittable& lights, vector<PixelColor>& pixels);
 
-	void RenderThreaded(const Hittable& world, vector<PixelColor>& pixels);
+	void RenderThreaded(const Hittable& world, const Hittable& lights, vector<PixelColor>& pixels);
 
 	CameraProperties ToCameraProperties() {
 		CameraProperties ret;

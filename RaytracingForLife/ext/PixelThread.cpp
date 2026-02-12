@@ -26,7 +26,7 @@ void PixelThread::run()
 
 Color PixelThread::Ray_Color(const Ray& r, int depth)
 {
-	return Ray_ColorFunc(r, depth, world, camera.background);
+	return Ray_ColorFunc(r, depth, world, lights, camera.background);
 }
 
 Ray PixelThread::Get_Ray(int i, int j, int si, int sj)

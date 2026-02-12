@@ -13,6 +13,8 @@ public:
 		d = dot(normal, q);
 		w = n / dot(n, n);
 
+		area = n.length();
+
 		Set_Bounding_Box();
 	}
 
@@ -63,6 +65,26 @@ public:
 		return true;
 	}
 
+	double PDF_Value(const Point3& origin, const Vec3& direction) const override {
+		Hit_Record rec;
+
+		if (!this->Hit(Ray(origin, direction),
+			Interval(0.001, infinity),
+			rec)) {
+			return 0;
+		}
+
+		auto dist_sq = rec.t * rec.t * direction.length_squared();
+		auto cosine = std::fabs(dot(direction, rec.Normal) / direction.length());
+
+		return dist_sq / (cosine * area);
+	}
+
+	Vec3 Random(const Point3& origin) const override {
+		auto p = q + (random_double() * u) + (random_double() * v);
+		return p - origin;
+	}
+
 private:
 	Point3 q;
 	Vec3 u, v;
@@ -71,6 +93,7 @@ private:
 	AABB bbox;
 	Vec3 normal;
 	double d;
+	double area;
 };
 
 inline shared_ptr<Hittable_List> Box(const Point3& a, const Point3& b, shared_ptr<Material> mat) {
