@@ -67,3 +67,27 @@ private:
 	Point3 origin;
 
 };
+
+class Mixture_PDF : public PDF {
+
+public:
+	Mixture_PDF(shared_ptr<PDF> p0, shared_ptr<PDF> p1) {
+		p[0] = p0;
+		p[1] = p1;
+	}
+
+	double value(const Vec3& dir) const override {
+		return 0.5 * p[0]->value(dir) +
+			0.5 * p[1]->value(dir);
+	}
+
+	Vec3 Generate() const override {
+		if (random_double() < 0.5)
+			return p[0]->Generate();
+		else
+			return p[1]->Generate();
+	}
+
+private:
+	shared_ptr<PDF> p[2];
+};

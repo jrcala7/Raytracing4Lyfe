@@ -74,10 +74,12 @@ inline Color Ray_ColorFunc(const Ray& r, int depth, const Hittable& world,
 	if (!rec.mat->Scatter(r, rec, attenuation, scattered, pdf_val))
 		return emission;
 
-	Hittable_PDF lightPDF(lights, rec.p);
+	auto p0 = make_shared<Hittable_PDF>(lights, rec.p);
+	auto p1 = make_shared<Cos_PDF>(rec.Normal);
+	Mixture_PDF mixed_pdf(p0, p1);
 
-	scattered = Ray(rec.p, lightPDF.Generate(), r.time());
-	pdf_val = lightPDF.value(scattered.direction());
+	scattered = Ray(rec.p, mixed_pdf.Generate(), r.time());
+	pdf_val = mixed_pdf.value(scattered.direction());
 
 	double scatter_pdf = rec.mat->Scattering_PDF(r, rec, scattered);
 	
