@@ -416,8 +416,6 @@ void CornellBox() {
 
 void CornellBox2() {
 	Hittable_List world;
-	//Lights
-	//Hittable_List lights;
 
 	auto red = make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
 	auto white = make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
@@ -433,14 +431,13 @@ void CornellBox2() {
 
 	// Light
 	world.Add(make_shared<Quad>(Point3(213, 554, 227), Vec3(130, 0, 0), Vec3(0, 0, 105), light));
-	//Light itself
-	auto empty_material = shared_ptr<Material>();
-	Quad lightObj(Point3(213, 554, 227), Vec3(130, 0, 0), Vec3(0, 0, 105), empty_material);
+	
 
+	shared_ptr<Material> aluminum = make_shared<Metal>(Color(0.8, 0.85, 0.88), 0.0);
 	shared_ptr<Hittable> box1 = Box(
 		Point3(0, 0, 0),
 		Point3(165, 330, 165),
-		white
+		aluminum
 	);
 	box1 = make_shared<Rot_Y>(box1, 15);
 	box1 = make_shared<Translate>(box1, Vec3(265, 0, 295));
@@ -455,11 +452,17 @@ void CornellBox2() {
 	box2 = make_shared<Translate>(box2, Vec3(130, 0, 65));
 	world.Add(box2);
 
+	//Light itself
+	Hittable_List lights;
+	auto empty_material = shared_ptr<Material>();
+	lights.Add(
+		make_shared<Quad>(Point3(343, 554, 332), Vec3(-130, 0, 0), Vec3(0, 0, -105), empty_material));
+
 	Camera cam;
 
 	cam.aspectRatio = 1.0;
-	cam.width = 600;
-	cam.samples_per_pixel = 10;
+	cam.width = 800;
+	cam.samples_per_pixel = 10000;
 	cam.max_depth = 50;
 	cam.background = Color(0.0, 0.0, 0.0);
 
@@ -471,7 +474,7 @@ void CornellBox2() {
 	cam.defocus_angle = 0;
 
 	vector<PixelColor> image;
-	cam.Render(world, lightObj, image);
+	cam.Render(world, lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);
 

@@ -44,6 +44,22 @@ public:
 		return bbox;
 	}
 
+	double PDF_Value(const Point3& origin, const Vec3& direction) const override {
+		auto weight = 1.0 / objects.size();
+		auto sum = 0.0;
+
+		for (const auto& object : objects)
+			sum += weight * object->PDF_Value(origin, direction);
+
+		return sum;
+	}
+
+	Vec3 Random(const Point3& origin) const override {
+		auto int_size = int(objects.size());
+		return objects[random_int(0, int_size - 1)]->Random(origin);
+	}
+
+
 private:
 	AABB bbox;
 };

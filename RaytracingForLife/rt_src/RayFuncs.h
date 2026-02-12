@@ -65,26 +65,26 @@ inline Color Ray_ColorFunc(const Ray& r, int depth, const Hittable& world,
 		return background;
 	}
 
-	Ray scattered;
-	Color attenuation;
-	double pdf_val;
-
+	Scatter_Record srec;
 	Color emission = rec.mat->Emitted(r, rec, rec.u, rec.v, rec.p);
 
-	if (!rec.mat->Scatter(r, rec, attenuation, scattered, pdf_val))
+	if (!rec.mat->Scatter(r, rec, srec))
 		return emission;
 
-	auto p0 = make_shared<Hittable_PDF>(lights, rec.p);
-	auto p1 = make_shared<Cos_PDF>(rec.Normal);
-	Mixture_PDF mixed_pdf(p0, p1);
+	if (srec.skip_pdf) {
+		return srec.attenuation * Ray_ColorFunc(srec.skip_pdf_ray, depth - 1, world, lights, background);
+	}
 
-	scattered = Ray(rec.p, mixed_pdf.Generate(), r.time());
-	pdf_val = mixed_pdf.value(scattered.direction());
+	auto light_ptr = make_shared<Hittable_PDF>(lights, rec.p);
+	Mixture_PDF p(light_ptr, srec.pdf_ptr);
+
+	Ray scattered = Ray(rec.p, p.Generate(), r.time());
+	auto pdf_value = p.value(scattered.direction());
 
 	double scatter_pdf = rec.mat->Scattering_PDF(r, rec, scattered);
 	
 	Color sample_color = Ray_ColorFunc(scattered, depth - 1, world, lights, background);
-	Color scatter_color = (attenuation * scatter_pdf * sample_color) / pdf_val;
+	Color scatter_color = (srec.attenuation * scatter_pdf * sample_color) / pdf_value;
 
 	return emission + scatter_color;
 }
