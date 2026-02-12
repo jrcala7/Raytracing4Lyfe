@@ -431,13 +431,12 @@ void CornellBox2() {
 
 	// Light
 	world.Add(make_shared<Quad>(Point3(213, 554, 227), Vec3(130, 0, 0), Vec3(0, 0, 105), light));
-	
 
 	shared_ptr<Material> aluminum = make_shared<Metal>(Color(0.8, 0.85, 0.88), 0.0);
 	shared_ptr<Hittable> box1 = Box(
 		Point3(0, 0, 0),
 		Point3(165, 330, 165),
-		aluminum
+		white
 	);
 	box1 = make_shared<Rot_Y>(box1, 15);
 	box1 = make_shared<Translate>(box1, Vec3(265, 0, 295));
@@ -452,6 +451,16 @@ void CornellBox2() {
 	box2 = make_shared<Translate>(box2, Vec3(130, 0, 65));
 	world.Add(box2);
 
+	Model3D cube;
+
+	cube.LoadModel("bunny.obj", aluminum, 800.0);
+	cube.ModelTranslate(300, 200);
+
+	////Tris
+	world.Add(
+		cube.modelTris
+	);
+
 	//Light itself
 	Hittable_List lights;
 	auto empty_material = shared_ptr<Material>();
@@ -461,7 +470,7 @@ void CornellBox2() {
 	Camera cam;
 
 	cam.aspectRatio = 1.0;
-	cam.width = 800;
+	cam.width = 1200;
 	cam.samples_per_pixel = 10000;
 	cam.max_depth = 50;
 	cam.background = Color(0.0, 0.0, 0.0);
@@ -474,6 +483,9 @@ void CornellBox2() {
 	cam.defocus_angle = 0;
 
 	vector<PixelColor> image;
+	
+	world = Hittable_List(make_shared<BVH_Node>(world));
+
 	cam.Render(world, lights, image);
 
 	auto sdArr = ConvertToDoubleVector(image);

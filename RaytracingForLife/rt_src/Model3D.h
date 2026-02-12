@@ -29,6 +29,22 @@ public:
 
 	shared_ptr<Hittable_List> modelTris;
 
+	void ModelTranslate(double x, double y = 0, double z = 0) {
+
+		shared_ptr<Hittable_List> newModel;
+		newModel = make_shared<Hittable_List>();
+
+		for (int i = 0; i < modelTris->objects.size(); i++) {
+			auto triangle = modelTris->objects[i];
+
+			auto transformT = make_shared<Translate>(triangle, Vec3(x, y, z));
+			newModel->Add(transformT);
+		}
+
+		modelTris.reset();
+		modelTris = newModel;
+	}
+
 private:
 	double currentScale = 1.0;
 	shared_ptr<Material> mat;
