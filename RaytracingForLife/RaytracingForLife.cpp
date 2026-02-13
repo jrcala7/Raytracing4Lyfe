@@ -775,13 +775,15 @@ void SwordScene() {
 
 	Model3D cube;
 
-	cube.LoadModel("djSword.obj", surf, 0.2);
-
+	cube.LoadModel("djSword.obj", surf, 0.63);
+	cube.ModelTranslate(0, -22, -5);
 
 	//Tris
-	//world.Add(
-	//	cube.modelTris
-	//);
+	world.Add(
+		cube.modelTris
+	);
+
+
 
 	auto material1 = make_shared<Dielectric>(1.5);
 	auto bloo = make_shared<Lambertian>(Color(0.2, 0.2, 0.8));
@@ -815,8 +817,8 @@ void SwordScene() {
 	Camera cam;
 
 	cam.aspectRatio = 1.0;
-	cam.width = 600;
-	cam.samples_per_pixel = 1000;
+	cam.width = 1200;
+	cam.samples_per_pixel = 2000;
 	cam.max_depth = 50;
 	cam.background = Color(0.4, 0.4, 1.0);
 
@@ -849,11 +851,11 @@ int main()
 	//QuadTest();
 	//SimpleLight();
 	//CornellBox();
-	CornellBox2();
+	//CornellBox2();
 	//TriTest();
 	//cornell_smoke();
 	//final_scene2(1200, 10000, 50);
 	//RabbitScene();
-	//SwordScene();
+	SwordScene();
 	return 0;
 }
