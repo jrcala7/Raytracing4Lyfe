@@ -420,6 +420,7 @@ void CornellBox2() {
 	auto red = make_shared<Lambertian>(Color(0.65, 0.05, 0.05));
 	auto white = make_shared<Lambertian>(Color(0.73, 0.73, 0.73));
 	auto green = make_shared<Lambertian>(Color(0.12, 0.45, 0.15));
+	auto blue = make_shared<Lambertian>(Color(0.68, 0.78, 0.81));
 	auto light = make_shared<DiffuseLight>(Color(15, 15, 15));
 
 	// Cornell box sides
@@ -451,15 +452,15 @@ void CornellBox2() {
 	box2 = make_shared<Translate>(box2, Vec3(130, 0, 65));
 	world.Add(box2);
 
-	//Model3D cube;
+	Model3D cube;
 
-	//cube.LoadModel("bunny.obj", aluminum, 800.0);
-	//cube.ModelTranslate(300, 200);
+	cube.LoadModel("bunny.obj", blue, 800.0);
+	cube.ModelTranslate(300, 200, 200);
 
 	//////Tris
-	//world.Add(
-	//	cube.modelTris
-	//);
+	world.Add(
+		cube.modelTris
+	);
 
 	//Light itself
 	Hittable_List lights;
@@ -471,8 +472,8 @@ void CornellBox2() {
 
 	cam.aspectRatio = 1.0;
 	cam.width = 1200;
-	cam.samples_per_pixel = 10000;
-	cam.max_depth = 50;
+	cam.samples_per_pixel = 1000;
+	cam.max_depth = 40;
 	cam.background = Color(0.0, 0.0, 0.0);
 
 	cam.vfov = 40;
@@ -733,13 +734,95 @@ void RabbitScene() {
 
 	cam.aspectRatio = 1.0;
 	cam.width = 1200;
-	cam.samples_per_pixel = 10000;
+	cam.samples_per_pixel = 5;
 	cam.max_depth = 50;
 	cam.background = Color(0.4, 0.4, 1.0);
 
 	cam.vfov = 80;
 	cam.lookfrom = Point3(0, 10, 9);
 	cam.lookat = Point3(-1.5, 4, 0);
+	cam.vup = Vec3(0, 1, 0);
+
+	cam.defocus_angle = 0;
+
+	vector<PixelColor> image;
+
+	world = Hittable_List(make_shared<BVH_Node>(world));
+
+	cam.Render(world, lights, image);
+
+	auto sdArr = ConvertToDoubleVector(image);
+
+	SaveImage(sdArr, cam.width, cam.height, "RabbitScene.png");
+
+	cout << "RabbitScene.png" << endl;
+}
+
+void SwordScene() {
+	Hittable_List world;
+	//Lights
+	Hittable_List lights;
+
+	//Colors
+	auto l_mat = make_shared<Lambertian>(Color(1.0, 0.2, 0.2));
+	auto b_mat = make_shared<Lambertian>(Color(0.4, 0.8, 0.4));
+	auto r_mat = make_shared<Lambertian>(Color(0.2, 0.2, 1.0));
+	auto u_mat = make_shared<Lambertian>(Color(1.0, 0.5, 0.0));
+	auto d_mat = make_shared<Lambertian>(Color(0.2, 0.8, 0.8));
+
+	auto tex = make_shared<ImageTexture>("partenza.jpg");
+	auto surf = make_shared<Lambertian>(tex);
+
+	Model3D cube;
+
+	cube.LoadModel("djSword.obj", surf, 0.2);
+
+
+	//Tris
+	//world.Add(
+	//	cube.modelTris
+	//);
+
+	auto material1 = make_shared<Dielectric>(1.5);
+	auto bloo = make_shared<Lambertian>(Color(0.2, 0.2, 0.8));
+	auto red = make_shared<Lambertian>(Color(0.8, 0.2, 0.2));
+	auto gray = make_shared<Lambertian>(Color(0.2, 0.2, 0.2));
+	auto yerro = make_shared<Lambertian>(Color(1.0, 0.9, 0.5));
+
+	auto white = make_shared<Lambertian>(Color(0.8, 0.8, 0.8));
+
+	shared_ptr<Material> aluminum = make_shared<Metal>(Color(0.8, 0.85, 0.88), 0.0);
+	world.Add(make_shared<Sphere>(Point3(-30, 25, 20), 20.0, aluminum));
+	world.Add(make_shared<Sphere>(Point3(-10, -15, 40), 30.0, red));
+	world.Add(make_shared<Sphere>(Point3(-120, -5, -10), 100.0, bloo));
+	world.Add(make_shared<Sphere>(Point3(0, -2500, -0), 2000, gray));
+	world.Add(make_shared<Sphere>(Point3(0, 2300, -0), 2000, yerro));
+
+	world.Add(make_shared<Sphere>(Point3(180, -5, -10), 150.0, white));
+
+	//auto material1 = make_shared<Lambertian>(Color(0.4, 0.2, 0.1));
+	////auto material1 = make_shared<Dielectric>(1.5);
+	//world.Add(make_shared<Sphere>(Point3(0, -40, 0), 40, material1));
+
+	//auto white = make_shared<Lambertian>(Color(.73, .73, .73));
+	//auto box1 = make_shared<Sphere>(Point3(0, -40, 0), 45, material1);
+	//world.Add(make_shared<Constant_Medium>(box1, 0.01, Color(0, 0, 0)));
+
+	auto empty_material = shared_ptr<Material>();
+	lights.Add(
+		make_shared<Quad>(Point3(0, 554, 0), Vec3(-130, 0, 0), Vec3(0, 0, -105), empty_material));
+
+	Camera cam;
+
+	cam.aspectRatio = 1.0;
+	cam.width = 600;
+	cam.samples_per_pixel = 1000;
+	cam.max_depth = 50;
+	cam.background = Color(0.4, 0.4, 1.0);
+
+	cam.vfov = 80;
+	cam.lookfrom = Point3(15, 3, 0);
+	cam.lookat = Point3(0, 2, 0);
 	cam.vup = Vec3(0, 1, 0);
 
 	cam.defocus_angle = 0;
@@ -766,10 +849,11 @@ int main()
 	//QuadTest();
 	//SimpleLight();
 	//CornellBox();
-	//CornellBox2();
+	CornellBox2();
 	//TriTest();
 	//cornell_smoke();
 	//final_scene2(1200, 10000, 50);
-	RabbitScene();
+	//RabbitScene();
+	//SwordScene();
 	return 0;
 }
