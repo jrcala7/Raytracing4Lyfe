@@ -12,6 +12,11 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+
 include(FetchContent)
 
 # Set directory of third party libraries
@@ -23,6 +28,12 @@ project ("RaytracingForLife")
 #set(OpenCV_DIR "H:/Tools/OpenCV/opencv/build")
 set(OpenCV_DIR "C:/Users/g411_jr/Tools/opencv/build")
 find_package(OpenCV REQUIRED)
+
+add_subdirectory(external/glad)
+add_subdirectory(external/glfw)
+
+
+find_package(OpenGL REQUIRED)
 
 # Add source to this project's executable.
 add_executable (RaytracingForLife
@@ -58,9 +69,10 @@ add_executable (RaytracingForLife
 "rt_src/Model3D.h" "rt_src/Model3D.cpp" 
 "rt_src/RayFuncs.h" 
 "rt_src/ONB.h" 
-"rt_src/PDF.h")
+"rt_src/PDF.h"
+)
 
-target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS})
+target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS} glad glfw OpenGL::GL)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET RaytracingForLife PROPERTY CXX_STANDARD 20)
