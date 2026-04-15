@@ -887,7 +887,9 @@ int TestComputeShader() {
 
 	// Load compute shader
 	// Construct the shader path relative to the executable location
-	std::string shaderPath = "C:/Users/g411_jr/Repos/Raytracing4Lyfe/RaytracingForLife/rt_src/shaders/sample_gradient.comp";
+	//std::string shaderPath = "C:/Users/g411_jr/Repos/Raytracing4Lyfe/RaytracingForLife/rt_src/shaders/sample_gradient.comp";
+	//std::string shaderPath = "C:/Users/g411_jr/Repos/Raytracing4Lyfe/RaytracingForLife/rt_src/shaders/checkerboard.comp";
+	std::string shaderPath = "C:/Users/g411_jr/Repos/Raytracing4Lyfe/RaytracingForLife/rt_src/shaders/raytrace_simple.comp";
 	GLuint program = ShaderUtils::LoadComputeShader(shaderPath);
 	if (program == 0) {
 		std::cerr << "FAILED: Could not load compute shader from: " << shaderPath << "\n";
