@@ -4,6 +4,12 @@
 #include "RaytracingForLife.h"
 #include "rt_src/Constant_Medium.h"
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <iostream>
+#include "rt_src/ShaderUtils.h"
+#include "rt_src/GPUComputeRenderer.h"
+
 using namespace std;
 
 void RT_WeekendFinalRender() {
@@ -817,8 +823,8 @@ void SwordScene() {
 	Camera cam;
 
 	cam.aspectRatio = 1.0;
-	cam.width = 1200;
-	cam.samples_per_pixel = 1500;
+	cam.width = 600;
+	cam.samples_per_pixel = 100;
 	cam.max_depth = 40;
 	cam.background = Color(0.4, 0.4, 1.0);
 
@@ -842,6 +848,172 @@ void SwordScene() {
 	cout << "RabbitScene.png" << endl;
 }
 
+int TestComputeShader() {
+	// Initialize GLFW
+	if (!glfwInit()) {
+		std::cerr << "FAILED: GLFW could not initialize\n";
+		return -1;
+	}
+	std::cout << "SUCCESS: GLFW initialized\n";
+
+	// Set OpenGL context version and profile
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	GLFWwindow* window = glfwCreateWindow(800, 600, "Compute Shader Test", NULL, NULL);
+	if (!window) {
+		std::cerr << "FAILED: Could not create GLFW window\n";
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
+
+	// Load OpenGL function pointers
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cerr << "FAILED: GLAD could not load OpenGL functions\n";
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	std::cout << "SUCCESS: GLAD loaded OpenGL\n";
+	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+
+	// Create compute renderer
+	GLuint width = 800;
+	GLuint height = 600;
+	ComputeRenderer renderer(width, height);
+
+	// Load compute shader
+	// Construct the shader path relative to the executable location
+	std::string shaderPath = "C:/Users/g411_jr/Repos/Raytracing4Lyfe/RaytracingForLife/rt_src/shaders/sample_gradient.comp";
+	GLuint program = ShaderUtils::LoadComputeShader(shaderPath);
+	if (program == 0) {
+		std::cerr << "FAILED: Could not load compute shader from: " << shaderPath << "\n";
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	std::cout << "SUCCESS: Compute shader loaded\n";
+
+	// Initialize image
+	if (!renderer.LoadShaderProgram(program)) {
+		std::cerr << "FAILED: Could not load shader program\n";
+		glDeleteProgram(program);
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	if (!renderer.InitializeImage()) {
+		std::cerr << "FAILED: Could not initialize image\n";
+		glDeleteProgram(program);
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	std::cout << "SUCCESS: Image initialized (" << width << "x" << height << ")\n";
+
+	// Dispatch compute shader
+	if (!renderer.Dispatch()) {
+		std::cerr << "FAILED: Compute shader dispatch failed\n";
+		glDeleteProgram(program);
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	std::cout << "SUCCESS: Compute shader dispatched\n";
+
+	// Read pixels back
+	std::vector<float> pixels;
+	if (!renderer.ReadImage(pixels)) {
+		std::cerr << "FAILED: Could not read image from GPU\n";
+		glDeleteProgram(program);
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	std::cout << "SUCCESS: Read " << pixels.size() << " pixels from GPU\n";
+
+	// Verify some pixels were written
+	bool hasNonZero = false;
+	for (float val : pixels) {
+		if (val > 0.0f) {
+			hasNonZero = true;
+			break;
+		}
+	}
+
+	if (!hasNonZero) {
+		std::cerr << "WARNING: All pixels are zero\n";
+	} else {
+		std::cout << "SUCCESS: Pixels contain non-zero values\n";
+	}
+
+	// Convert float RGBA pixels to BGR format for OpenCV
+	std::vector<double> bgrImage;
+	bgrImage.reserve(width * height * 3);
+
+	for (size_t i = 0; i < pixels.size(); i += 4) {
+		// RGBA from GPU -> BGR for OpenCV
+		double r = std::max(0.0, std::min(1.0, (double)pixels[i]));
+		double g = std::max(0.0, std::min(1.0, (double)pixels[i + 1]));
+		double b = std::max(0.0, std::min(1.0, (double)pixels[i + 2]));
+		// Skip alpha channel
+
+		bgrImage.push_back(b);
+		bgrImage.push_back(g);
+		bgrImage.push_back(r);
+	}
+
+	SaveImage(bgrImage, width, height, "ComputeShader_Gradient.png");
+	std::cout << "SUCCESS: Saved to ComputeShader_Gradient.png\n";
+
+	// Cleanup
+	glDeleteProgram(program);
+	glfwDestroyWindow(window);
+	glfwTerminate();
+
+	std::cout << "\nCompute shader test completed successfully!\n";
+	return 0;
+}
+
+int TestGLFW() {
+
+	// Check GLFW
+	if (!glfwInit()) {
+		std::cerr << "FAILED: GLFW could not initialize\n";
+		return -1;
+	}
+	std::cout << "SUCCESS: GLFW initialized\n";
+
+	GLFWwindow* window = glfwCreateWindow(800, 600, "Verify", NULL, NULL);
+	if (!window) {
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
+
+	// Check GLAD & OpenGL
+	// This loads the OpenGL function pointers via GLFW's function loader
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cerr << "FAILED: GLAD could not load OpenGL functions\n";
+		return -1;
+	}
+
+	std::cout << "SUCCESS: GLAD loaded OpenGL\n";
+	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+
+	glfwTerminate();
+	return 0;
+
+}
+
 int main()
 {
 	//RT_WeekendFinalRender();
@@ -856,6 +1028,9 @@ int main()
 	//cornell_smoke();
 	//final_scene2(1200, 10000, 50);
 	//RabbitScene();
-	SwordScene();
-	return 0;
+	//SwordScene();
+
+	int ret = TestComputeShader();
+
+	return ret;
 }
