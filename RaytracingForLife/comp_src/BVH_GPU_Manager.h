@@ -15,6 +15,7 @@ public:
 	GLuint bvh_ssbo = 0;
 	GLuint sphere_ssbo = 0;
 	GLuint material_ssbo = 0;
+	GLuint texture_id = 0;
 
 	comp_bvh::BVH_GPU bvh_data;
 
@@ -26,8 +27,9 @@ public:
 		if (bvh_ssbo) glDeleteBuffers(1, &bvh_ssbo);
 		if (sphere_ssbo) glDeleteBuffers(1, &sphere_ssbo);
 		if (material_ssbo) glDeleteBuffers(1, &material_ssbo);
+		if (texture_id) glDeleteTextures(1, &texture_id);
 
-		bvh_ssbo = sphere_ssbo = material_ssbo = 0;
+		bvh_ssbo = sphere_ssbo = material_ssbo = texture_id = 0;
 	}
 
 	/**
@@ -72,7 +74,28 @@ public:
 	}
 
 	/**
-	 * Bind SSBOs to compute program
+	 * Upload texture image to GPU (binding point 4)
+	 * data: RGBA image data (4 bytes per pixel)
+	 * width, height: image dimensions
+	 */
+	void upload_texture(const unsigned char* data, int width, int height) {
+		if (texture_id == 0) {
+			glGenTextures(1, &texture_id);
+		}
+
+		glBindTexture(GL_TEXTURE_2D, texture_id);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	/**
+	 * Bind SSBOs and texture to compute program
 	 */
 	void bind_to_program(GLuint program) {
 		if (bvh_ssbo) {
@@ -96,6 +119,15 @@ public:
 			if (material_block != GL_INVALID_INDEX) {
 				glShaderStorageBlockBinding(program, material_block, 3);
 				glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, material_ssbo);
+			}
+		}
+
+		if (texture_id) {
+			glActiveTexture(GL_TEXTURE0 + 4);
+			glBindTexture(GL_TEXTURE_2D, texture_id);
+			GLint texture_loc = glGetUniformLocation(program, "texture_sampler");
+			if (texture_loc != -1) {
+				glUniform1i(texture_loc, 4);
 			}
 		}
 	}

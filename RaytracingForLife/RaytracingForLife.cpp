@@ -13,6 +13,7 @@
 #include "comp_src/BVH_GPU_Manager.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "stb_image.h"
 
 using namespace std;
 
@@ -150,7 +151,7 @@ void SphereSample() {
 	Camera cam;
 	
 	cam.aspectRatio = 16.0 / 9.0;
-	cam.width = 100;
+	cam.width = 1600;
 	cam.samples_per_pixel = 100;
 	cam.max_depth = 50;
 	cam.background = Color(0.7, 0.8, 1.0);
@@ -1105,6 +1106,22 @@ int TestComputeShader_SphereSample() {
 	std::vector<glm::vec4> material_data;
 	material_data.push_back(glm::vec4(0.5f, 0.5f, 0.8f, 1.0f));  // Matching SphereSample's Lambertian(Color(0.5, 0.5, 0.8))
 
+	// ===== Step 4b: Load texture image =====
+	int tex_width, tex_height, tex_channels;
+	const char* texture_filename = "C:\\Users\\g411_jr\\Repos\\Raytracing4Lyfe\\RaytracingForLife\\images\\zukiss.png";
+	stbi_set_flip_vertically_on_load(true);  // Flip vertically to match OpenGL texture coordinates
+	unsigned char* texture_data = stbi_load(texture_filename, &tex_width, &tex_height, &tex_channels, STBI_rgb_alpha);
+	stbi_set_flip_vertically_on_load(false);
+
+	if (!texture_data) {
+		std::cerr << "FAILED: Could not load texture: " << texture_filename << "\n";
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	std::cout << "SUCCESS: Loaded texture " << texture_filename << " (" << tex_width << "x" << tex_height << ", " << tex_channels << " channels)\n";
+
 	// ===== Step 5: Create compute renderer =====
 	ComputeRenderer renderer(width, height);
 
@@ -1113,6 +1130,7 @@ int TestComputeShader_SphereSample() {
 	GLuint program = ShaderUtils::LoadComputeShader(shaderPath);
 	if (program == 0) {
 		std::cerr << "FAILED: Could not load compute shader from: " << shaderPath << "\n";
+		stbi_image_free(texture_data);
 		glfwDestroyWindow(window);
 		glfwTerminate();
 		return -1;
@@ -1124,6 +1142,7 @@ int TestComputeShader_SphereSample() {
 	if (!renderer.LoadShaderProgram(program)) {
 		std::cerr << "FAILED: Could not load shader program\n";
 		glDeleteProgram(program);
+		stbi_image_free(texture_data);
 		glfwDestroyWindow(window);
 		glfwTerminate();
 		return -1;
@@ -1132,6 +1151,7 @@ int TestComputeShader_SphereSample() {
 	if (!renderer.InitializeImage()) {
 		std::cerr << "FAILED: Could not initialize image\n";
 		glDeleteProgram(program);
+		stbi_image_free(texture_data);
 		glfwDestroyWindow(window);
 		glfwTerminate();
 		return -1;
@@ -1139,14 +1159,15 @@ int TestComputeShader_SphereSample() {
 
 	std::cout << "SUCCESS: Image initialized (" << width << "x" << height << ")\n";
 
-	// ===== Step 6: Upload BVH and scene data to GPU =====
+	// ===== Step 6: Upload BVH, scene data, and texture to GPU =====
 	BVH_GPU_Manager bvh_manager;
 	bvh_manager.upload_bvh(bvh);
 	bvh_manager.upload_spheres(sphere_data);
 	bvh_manager.upload_materials(material_data);
+	bvh_manager.upload_texture(texture_data, tex_width, tex_height);
 	bvh_manager.bind_to_program(program);
 
-	std::cout << "SUCCESS: BVH and scene data uploaded to GPU\n";
+	std::cout << "SUCCESS: BVH, scene data, and texture uploaded to GPU\n";
 
 	// ===== Step 7: Set shader uniforms =====
 	glUseProgram(program);
@@ -1179,6 +1200,7 @@ int TestComputeShader_SphereSample() {
 	GLint pixel00_loc_loc = glGetUniformLocation(program, "pixel00_loc");
 	GLint pixel_delta_u_loc = glGetUniformLocation(program, "pixel_delta_u");
 	GLint pixel_delta_v_loc = glGetUniformLocation(program, "pixel_delta_v");
+	GLint use_texture_loc = glGetUniformLocation(program, "use_texture");
 
 	if (bvh_root_loc != -1) glUniform1ui(bvh_root_loc, bvh_manager.get_root_index());
 	if (sphere_count_loc != -1) glUniform1ui(sphere_count_loc, 1);  // 1 sphere
@@ -1186,6 +1208,7 @@ int TestComputeShader_SphereSample() {
 	if (pixel00_loc_loc != -1) glUniform3fv(pixel00_loc_loc, 1, glm::value_ptr(pixel00_loc));
 	if (pixel_delta_u_loc != -1) glUniform3fv(pixel_delta_u_loc, 1, glm::value_ptr(pixel_delta_u));
 	if (pixel_delta_v_loc != -1) glUniform3fv(pixel_delta_v_loc, 1, glm::value_ptr(pixel_delta_v));
+	if (use_texture_loc != -1) glUniform1i(use_texture_loc, 1);  // Enable texture sampling
 
 	std::cout << "SUCCESS: Shader uniforms set\n"
 		<< "  pixel00_loc: (" << pixel00_loc.x << ", " << pixel00_loc.y << ", " << pixel00_loc.z << ")\n"
@@ -1251,6 +1274,7 @@ int TestComputeShader_SphereSample() {
 	std::cout << "SUCCESS: Saved to ComputeShader_SphereSample.png\n";
 
 	// Cleanup
+	stbi_image_free(texture_data);
 	glDeleteProgram(program);
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -1263,7 +1287,7 @@ int main()
 {
 	//RT_WeekendFinalRender();
 	//CheckerSphere();
-	//SphereSample();
+	SphereSample();
 	//NoiseSample();
 	//QuadTest();
 	//SimpleLight();
@@ -1276,7 +1300,7 @@ int main()
 	//SwordScene();
 
 	//int ret = TestComputeShader();
-	int ret = TestComputeShader_SphereSample();
+	//int ret = TestComputeShader_SphereSample();
 
 	return 1;
 }

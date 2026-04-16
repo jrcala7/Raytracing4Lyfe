@@ -3,6 +3,7 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 
 layout(rgba32f, binding = 0) uniform image2D img_output;
+layout(binding = 4) uniform sampler2D texture_sampler;
 
 // GPU-friendly BVH node structure (must match BVH_Node_GPU in BVH_Compute.h)
 struct BVH_Node {
@@ -41,6 +42,7 @@ uniform vec3 camera_origin;
 uniform vec3 pixel00_loc;
 uniform vec3 pixel_delta_u;
 uniform vec3 pixel_delta_v;
+uniform bool use_texture;
 
 // Ray structure
 struct Ray {
@@ -55,6 +57,23 @@ struct HitRecord {
 	vec3 position;
 	vec3 normal;
 };
+
+// Compute spherical UV coordinates for a point on a sphere
+// Matches CPU implementation in Sphere::Get_Sphere_UV()
+vec2 sphere_uv(vec3 p) {
+	// p is normalized direction from sphere center
+	p = normalize(p);
+
+	// phi is angle around y-axis (longitude), theta is angle from top (latitude)
+	float theta = acos(-p.y);
+	float phi = atan(-p.z, p.x) + 3.14159265359;  // atan2 with pi offset
+
+	// Normalize to [0, 1]
+	float u = phi / (2.0 * 3.14159265359);  // [0, 1]
+	float v = theta / 3.14159265359;         // [0, 1]
+
+	return vec2(u, v);
+}
 
 // AABB hit test (matches CPU implementation)
 bool aabb_hit(vec3 bounds_min, vec3 bounds_max, Ray r, float t_min, float t_max) {
@@ -176,8 +195,17 @@ void main() {
 
 	vec4 color;
 	if (hit.hit) {
-		// Simple shading based on normal
-		color = vec4(normalize(hit.normal) * 0.5 + 0.5, 1.0);
+		if (use_texture) {
+			// Sample texture using spherical UV coordinates
+			vec3 to_center = hit.position - spheres[hit.object_id].center;
+			vec2 uv = sphere_uv(to_center);
+
+			// Sample from texture and apply as color
+			color = texture(texture_sampler, uv);
+		} else {
+			// Simple shading based on normal
+			color = vec4(normalize(hit.normal) * 0.5 + 0.5, 1.0);
+		}
 	} else {
 		// Background gradient
 		vec2 uv = vec2(pixel) / vec2(img_size);
