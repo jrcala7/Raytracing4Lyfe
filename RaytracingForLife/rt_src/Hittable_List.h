@@ -55,6 +55,9 @@ public:
 	}
 
 	Vec3 Random(const Point3& origin) const override {
+		if (objects.empty()) {
+			return random_unit_vector();  // Return random direction if list is empty
+		}
 		auto int_size = int(objects.size());
 		return objects[random_int(0, int_size - 1)]->Random(origin);
 	}

@@ -9,6 +9,10 @@
 #include <iostream>
 #include "rt_src/ShaderUtils.h"
 #include "rt_src/GPUComputeRenderer.h"
+#include "comp_src/BVH_Compute.h"
+#include "comp_src/BVH_GPU_Manager.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 
@@ -139,6 +143,10 @@ void SphereSample() {
 	//Lights
 	Hittable_List lights;
 
+	auto empty_material = shared_ptr<Material>();
+	lights.Add(
+		make_shared<Quad>(Point3(0, 554, 0), Vec3(-130, 0, 0), Vec3(0, 0, -105), empty_material));
+
 	Camera cam;
 	
 	cam.aspectRatio = 16.0 / 9.0;
@@ -161,7 +169,7 @@ void SphereSample() {
 
 	SaveImage(sdArr, cam.width, cam.height, "SampleTexImg.png");
 
-	cout << "SampleTexImg.png" << endl;
+	cout << "SampleTexImg.png " << cam.width << "x" << cam.height << "y" << endl;
 }
 
 void NoiseSample() {
@@ -1016,6 +1024,241 @@ int TestGLFW() {
 
 }
 
+int TestComputeShader_SphereSample() {
+	// Initialize GLFW
+	if (!glfwInit()) {
+		std::cerr << "FAILED: GLFW could not initialize\n";
+		return -1;
+	}
+	std::cout << "SUCCESS: GLFW initialized\n";
+
+	// Set OpenGL context version and profile
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	GLFWwindow* window = glfwCreateWindow(800, 600, "Sphere Sample - Compute Shader", NULL, NULL);
+	if (!window) {
+		std::cerr << "FAILED: Could not create GLFW window\n";
+		glfwTerminate();
+		return -1;
+	}
+	glfwMakeContextCurrent(window);
+
+	// Load OpenGL function pointers
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+		std::cerr << "FAILED: GLAD could not load OpenGL functions\n";
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	std::cout << "SUCCESS: GLAD loaded OpenGL\n";
+	std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+
+	// ===== Camera parameters (matching SphereSample) =====
+	float aspectRatio = 16.0f / 9.0f;
+	float vfov = 20.0f;  // vertical field of view in degrees
+	float focus_dist = 1.0f;  // default focus distance
+	glm::vec3 camera_origin(0.0f, 0.0f, 12.0f);
+	glm::vec3 camera_lookat(0.0f, 0.0f, 0.0f);
+
+	// Image dimensions
+	GLuint width = 1600;
+	GLuint height = static_cast<GLuint>(width / aspectRatio);
+	float aspect_ratio = (float)width / (float)height;
+
+	// Calculate viewport height using vfov (matching Camera::Initialize)
+	float theta = glm::radians(vfov);
+	float h = glm::tan(theta / 2.0f);
+	float viewport_height = 2.0f * h * focus_dist;
+	float viewport_width = viewport_height * aspect_ratio;
+
+	std::cout << "SUCCESS: Camera vfov=" << vfov << "°, viewport_height=" << viewport_height 
+		<< ", viewport_width=" << viewport_width << "\n";
+
+	// ===== Step 1: Create scene geometry =====
+	// Create a single sphere (matching SphereSample's globe)
+	glm::vec3 sphere_center(0.0f, 0.0f, 0.0f);
+	float sphere_radius = 2.0f;
+
+	// Create BVH primitives - single sphere bounds
+	std::vector<comp_bvh::BVH_Builder::Primitive> primitives;
+	primitives.push_back({
+		sphere_center - glm::vec3(sphere_radius),
+		sphere_center + glm::vec3(sphere_radius),
+		0  // object_id
+	});
+
+	// ===== Step 2: Build GPU BVH =====
+	comp_bvh::BVH_Builder builder(primitives);
+	comp_bvh::BVH_GPU bvh = builder.build();
+	std::cout << "SUCCESS: BVH built with " << bvh.get_node_count() << " nodes\n";
+
+	// ===== Step 3: Create sphere geometry for GPU =====
+	// Sphere data: center (vec3) + radius (float)
+	std::vector<glm::vec4> sphere_data;
+	sphere_data.push_back(glm::vec4(sphere_center, sphere_radius));
+
+	// ===== Step 4: Create material data =====
+	// Simple material: just store a color for now
+	std::vector<glm::vec4> material_data;
+	material_data.push_back(glm::vec4(0.5f, 0.5f, 0.8f, 1.0f));  // Matching SphereSample's Lambertian(Color(0.5, 0.5, 0.8))
+
+	// ===== Step 5: Create compute renderer =====
+	ComputeRenderer renderer(width, height);
+
+	// Load compute shader
+	std::string shaderPath = "C:/Users/g411_jr/Repos/Raytracing4Lyfe/RaytracingForLife/comp_src/shaders/bvh_traverse.comp";
+	GLuint program = ShaderUtils::LoadComputeShader(shaderPath);
+	if (program == 0) {
+		std::cerr << "FAILED: Could not load compute shader from: " << shaderPath << "\n";
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	std::cout << "SUCCESS: Compute shader loaded\n";
+
+	// Initialize image
+	if (!renderer.LoadShaderProgram(program)) {
+		std::cerr << "FAILED: Could not load shader program\n";
+		glDeleteProgram(program);
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	if (!renderer.InitializeImage()) {
+		std::cerr << "FAILED: Could not initialize image\n";
+		glDeleteProgram(program);
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	std::cout << "SUCCESS: Image initialized (" << width << "x" << height << ")\n";
+
+	// ===== Step 6: Upload BVH and scene data to GPU =====
+	BVH_GPU_Manager bvh_manager;
+	bvh_manager.upload_bvh(bvh);
+	bvh_manager.upload_spheres(sphere_data);
+	bvh_manager.upload_materials(material_data);
+	bvh_manager.bind_to_program(program);
+
+	std::cout << "SUCCESS: BVH and scene data uploaded to GPU\n";
+
+	// ===== Step 7: Set shader uniforms =====
+	glUseProgram(program);
+
+	// Camera parameters (matching SphereSample)
+	glm::vec3 camera_dir = glm::normalize(camera_lookat - camera_origin);
+	glm::vec3 camera_vup(0.0f, 1.0f, 0.0f);  // Standard up vector
+
+	// Compute camera basis vectors (matching Camera::Initialize)
+	glm::vec3 w = glm::normalize(camera_origin - camera_lookat);  // backwards
+	glm::vec3 u = glm::normalize(glm::cross(camera_vup, w));       // right
+	glm::vec3 v = glm::cross(w, u);                                 // up
+
+	// Compute viewport basis vectors
+	glm::vec3 viewport_u = viewport_width * u;
+	glm::vec3 viewport_v = viewport_height * (-v);  // negative v for top-to-bottom
+
+	// Compute pixel delta vectors
+	glm::vec3 pixel_delta_u = viewport_u / float(width);
+	glm::vec3 pixel_delta_v = viewport_v / float(height);
+
+	// Compute upper left pixel location
+	glm::vec3 viewport_upper_left = camera_origin - (focus_dist * w) - viewport_u / 2.0f - viewport_v / 2.0f;
+	glm::vec3 pixel00_loc = viewport_upper_left + 0.5f * (pixel_delta_u + pixel_delta_v);
+
+	// Set uniforms
+	GLint bvh_root_loc = glGetUniformLocation(program, "bvh_root");
+	GLint sphere_count_loc = glGetUniformLocation(program, "sphere_count");
+	GLint camera_origin_loc = glGetUniformLocation(program, "camera_origin");
+	GLint pixel00_loc_loc = glGetUniformLocation(program, "pixel00_loc");
+	GLint pixel_delta_u_loc = glGetUniformLocation(program, "pixel_delta_u");
+	GLint pixel_delta_v_loc = glGetUniformLocation(program, "pixel_delta_v");
+
+	if (bvh_root_loc != -1) glUniform1ui(bvh_root_loc, bvh_manager.get_root_index());
+	if (sphere_count_loc != -1) glUniform1ui(sphere_count_loc, 1);  // 1 sphere
+	if (camera_origin_loc != -1) glUniform3fv(camera_origin_loc, 1, glm::value_ptr(camera_origin));
+	if (pixel00_loc_loc != -1) glUniform3fv(pixel00_loc_loc, 1, glm::value_ptr(pixel00_loc));
+	if (pixel_delta_u_loc != -1) glUniform3fv(pixel_delta_u_loc, 1, glm::value_ptr(pixel_delta_u));
+	if (pixel_delta_v_loc != -1) glUniform3fv(pixel_delta_v_loc, 1, glm::value_ptr(pixel_delta_v));
+
+	std::cout << "SUCCESS: Shader uniforms set\n"
+		<< "  pixel00_loc: (" << pixel00_loc.x << ", " << pixel00_loc.y << ", " << pixel00_loc.z << ")\n"
+		<< "  pixel_delta_u: (" << pixel_delta_u.x << ", " << pixel_delta_u.y << ", " << pixel_delta_u.z << ")\n"
+		<< "  pixel_delta_v: (" << pixel_delta_v.x << ", " << pixel_delta_v.y << ", " << pixel_delta_v.z << ")\n";
+
+	// Dispatch compute shader
+	if (!renderer.Dispatch()) {
+		std::cerr << "FAILED: Compute shader dispatch failed\n";
+		glDeleteProgram(program);
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	std::cout << "SUCCESS: Compute shader dispatched\n";
+
+	// ===== Step 8: Read pixels back =====
+	std::vector<float> pixels;
+	if (!renderer.ReadImage(pixels)) {
+		std::cerr << "FAILED: Could not read image from GPU\n";
+		glDeleteProgram(program);
+		glfwDestroyWindow(window);
+		glfwTerminate();
+		return -1;
+	}
+
+	std::cout << "SUCCESS: Read " << pixels.size() << " pixels from GPU\n";
+
+	// Verify some pixels were written
+	bool hasNonZero = false;
+	for (float val : pixels) {
+		if (val > 0.0f) {
+			hasNonZero = true;
+			break;
+		}
+	}
+
+	if (!hasNonZero) {
+		std::cerr << "WARNING: All pixels are zero\n";
+	} else {
+		std::cout << "SUCCESS: Pixels contain non-zero values\n";
+	}
+
+	// ===== Step 9: Convert and save image =====
+	// Convert float RGBA pixels to BGR format for OpenCV
+	std::vector<double> bgrImage;
+	bgrImage.reserve(width * height * 3);
+
+	for (size_t i = 0; i < pixels.size(); i += 4) {
+		// RGBA from GPU -> BGR for OpenCV
+		double r = std::max(0.0, std::min(1.0, (double)pixels[i]));
+		double g = std::max(0.0, std::min(1.0, (double)pixels[i + 1]));
+		double b = std::max(0.0, std::min(1.0, (double)pixels[i + 2]));
+		// Skip alpha channel
+
+		bgrImage.push_back(b);
+		bgrImage.push_back(g);
+		bgrImage.push_back(r);
+	}
+
+	SaveImage(bgrImage, width, height, "ComputeShader_SphereSample.png");
+	std::cout << "SUCCESS: Saved to ComputeShader_SphereSample.png\n";
+
+	// Cleanup
+	glDeleteProgram(program);
+	glfwDestroyWindow(window);
+	glfwTerminate();
+
+	std::cout << "\nCompute shader SphereSample test completed successfully!\n";
+	return 0;
+}
+
 int main()
 {
 	//RT_WeekendFinalRender();
@@ -1032,7 +1275,8 @@ int main()
 	//RabbitScene();
 	//SwordScene();
 
-	int ret = TestComputeShader();
+	//int ret = TestComputeShader();
+	int ret = TestComputeShader_SphereSample();
 
-	return ret;
+	return 1;
 }

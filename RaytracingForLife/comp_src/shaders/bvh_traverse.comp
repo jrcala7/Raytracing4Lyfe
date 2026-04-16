@@ -1,0 +1,188 @@
+#version 430 core
+
+layout(local_size_x = 8, local_size_y = 8) in;
+
+layout(rgba32f, binding = 0) uniform image2D img_output;
+
+// GPU-friendly BVH node structure (must match BVH_Node_GPU in BVH_Compute.h)
+struct BVH_Node {
+	vec3 bounds_min;
+	float pad0;
+	vec3 bounds_max;
+	float pad1;
+	uint left_child;
+	uint right_child;
+	uint object_id;
+	uint pad2;
+};
+
+// Simplified sphere structure for rendering
+struct Sphere {
+	vec3 center;
+	float radius;
+};
+
+// SSBO bindings
+layout(std430, binding = 1) readonly buffer BVH_Nodes {
+	BVH_Node nodes[];
+};
+
+layout(std430, binding = 2) readonly buffer Spheres {
+	Sphere spheres[];
+};
+
+layout(std430, binding = 3) readonly buffer MaterialData {
+	vec4 materials[];
+};
+
+uniform uint bvh_root;
+uniform uint sphere_count;
+uniform vec3 camera_origin;
+uniform vec3 pixel00_loc;
+uniform vec3 pixel_delta_u;
+uniform vec3 pixel_delta_v;
+
+// Ray structure
+struct Ray {
+	vec3 origin;
+	vec3 direction;
+};
+
+struct HitRecord {
+	bool hit;
+	float t;
+	uint object_id;
+	vec3 position;
+	vec3 normal;
+};
+
+// AABB hit test (matches CPU implementation)
+bool aabb_hit(vec3 bounds_min, vec3 bounds_max, Ray r, float t_min, float t_max) {
+	for (int axis = 0; axis < 3; axis++) {
+		float adinv = 1.0 / r.direction[axis];
+		float t0 = (bounds_min[axis] - r.origin[axis]) * adinv;
+		float t1 = (bounds_max[axis] - r.origin[axis]) * adinv;
+
+		if (t0 > t1) {
+			float temp = t0;
+			t0 = t1;
+			t1 = temp;
+		}
+
+		t_min = max(t_min, t0);
+		t_max = min(t_max, t1);
+
+		if (t_max < t_min) return false;
+	}
+	return true;
+}
+
+// Sphere-ray intersection
+bool sphere_hit(Sphere sphere, Ray r, float t_min, float t_max, inout HitRecord rec) {
+	vec3 oc = r.origin - sphere.center;
+	float a = dot(r.direction, r.direction);
+	float b = 2.0 * dot(oc, r.direction);
+	float c = dot(oc, oc) - sphere.radius * sphere.radius;
+	float discriminant = b * b - 4.0 * a * c;
+
+	if (discriminant < 0.0) return false;
+
+	float sqrt_disc = sqrt(discriminant);
+	float t = (-b - sqrt_disc) / (2.0 * a);
+	if (t < t_min || t_max < t) {
+		t = (-b + sqrt_disc) / (2.0 * a);
+		if (t < t_min || t_max < t) return false;
+	}
+
+	rec.hit = true;
+	rec.t = t;
+	rec.position = r.origin + t * r.direction;
+	rec.normal = normalize(rec.position - sphere.center);
+
+	return true;
+}
+
+// BVH traversal - iterative stack-based traversal for GPU efficiency
+HitRecord bvh_trace(Ray r, float t_min, float t_max) {
+	HitRecord closest_hit;
+	closest_hit.hit = false;
+	closest_hit.t = t_max;
+
+	uint stack[32];
+	uint stack_ptr = 0;
+
+	stack[stack_ptr++] = bvh_root;
+
+	while (stack_ptr > 0) {
+		uint node_idx = stack[--stack_ptr];
+		if (node_idx == 0xFFFFFFFFu) continue;
+
+		BVH_Node node = nodes[node_idx];
+
+		// Test AABB
+		if (!aabb_hit(node.bounds_min, node.bounds_max, r, t_min, closest_hit.t)) {
+			continue;
+		}
+
+		if (node.object_id != 0xFFFFFFFFu) {
+			// Leaf node - test sphere
+			if (node.object_id < sphere_count) {
+				HitRecord hit;
+				hit.hit = false;
+				if (sphere_hit(spheres[node.object_id], r, t_min, closest_hit.t, hit)) {
+					if (hit.t < closest_hit.t) {
+						closest_hit = hit;
+						closest_hit.object_id = node.object_id;
+					}
+				}
+			}
+		} else {
+			// Internal node - push children onto stack
+			if (node.right_child != 0xFFFFFFFFu) {
+				stack[stack_ptr++] = node.right_child;
+			}
+			if (node.left_child != 0xFFFFFFFFu) {
+				stack[stack_ptr++] = node.left_child;
+			}
+		}
+	}
+
+	return closest_hit;
+}
+
+void main() {
+	ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+	ivec2 img_size = imageSize(img_output);
+
+	if (pixel.x >= img_size.x || pixel.y >= img_size.y) {
+		return;
+	}
+
+	// Compute ray from camera using proper viewport calculations
+	// This matches Camera::GetRayFunc() from the CPU renderer
+	vec3 pixel_center = pixel00_loc + 
+		(float(pixel.x) * pixel_delta_u) + 
+		(float(pixel.y) * pixel_delta_v);
+
+	vec3 ray_origin = camera_origin;
+	vec3 ray_direction = normalize(pixel_center - ray_origin);
+
+	Ray r;
+	r.origin = ray_origin;
+	r.direction = ray_direction;
+
+	// Trace ray through BVH
+	HitRecord hit = bvh_trace(r, 0.001, 1e30);
+
+	vec4 color;
+	if (hit.hit) {
+		// Simple shading based on normal
+		color = vec4(normalize(hit.normal) * 0.5 + 0.5, 1.0);
+	} else {
+		// Background gradient
+		vec2 uv = vec2(pixel) / vec2(img_size);
+		color = vec4(0.7, 0.8, 1.0, 1.0);  // Sky blue matching SphereSample
+	}
+
+	imageStore(img_output, pixel, color);
+}

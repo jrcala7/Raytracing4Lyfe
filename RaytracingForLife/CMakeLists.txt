@@ -31,6 +31,7 @@ find_package(OpenCV REQUIRED)
 
 add_subdirectory(external/glad)
 add_subdirectory(external/glfw)
+add_subdirectory(external/glm)
 
 
 find_package(OpenGL REQUIRED)
@@ -70,9 +71,11 @@ add_executable (RaytracingForLife
 "rt_src/RayFuncs.h" 
 "rt_src/ONB.h" 
 "rt_src/PDF.h"
+
+"comp_src/BVH_Compute.h" "comp_src/BVH_GPU_Manager.h" "comp_src/ComputeBVH.h" 
 )
 
-target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS} glad glfw OpenGL::GL)
+target_link_libraries(RaytracingForLife PRIVATE ${OpenCV_LIBS} glad glfw OpenGL::GL glm::glm)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET RaytracingForLife PROPERTY CXX_STANDARD 20)
