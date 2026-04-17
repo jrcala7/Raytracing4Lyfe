@@ -1,0 +1,81 @@
+# compute_shader Branch Report: Compute Shader Functionality vs `main`
+
+## Scope
+This report checks whether the `compute_shader` branch supports **compute-shader processing of OBJ files**, and compares that to `main`.
+
+- `main`: `4f915b76bf601a7c7a9b130d2a4a3b6a6380c1e0`
+- `compute_shader`: `159d9d56e4910cae457cd1b4d29c76c9da304a07`
+
+## Executive Summary
+- The `compute_shader` branch introduces real compute-shader infrastructure (shader loading, dispatch, SSBO/texture upload, GPU BVH helpers, GLSL compute shaders).
+- **However, there is no implemented pipeline that sends OBJ mesh data (triangles) into the compute shader path.**
+- OBJ loading still exists through `tinyobj` and `Model3D`, but that path remains CPU raytracing oriented.
+- Relative to `main`, this is an advance in GPU experimentation/prototyping, but **not yet OBJ-on-compute support**.
+
+## What exists on `compute_shader`
+
+### 1) Compute shader source files
+New compute shader files are present:
+- `RaytracingForLife/comp_src/shaders/bvh_traverse.comp`
+- `RaytracingForLife/rt_src/shaders/raytrace_simple.comp`
+- `RaytracingForLife/rt_src/shaders/sample_gradient.comp`
+- `RaytracingForLife/rt_src/shaders/checkerboard.comp`
+
+### 2) Shader initialization and GPU execution path
+Compute shader initialization/dispatch support was added:
+- `RaytracingForLife/rt_src/ShaderUtils.h`
+  - `LoadComputeShader(...)` compiles `GL_COMPUTE_SHADER`, links program.
+- `RaytracingForLife/rt_src/GPUComputeRenderer.h`
+  - Creates output image texture, dispatches with `glDispatchCompute`, reads back pixels.
+- `RaytracingForLife/RaytracingForLife.cpp`
+  - `TestComputeShader()` and `TestComputeShader_SphereSample()` initialize GLFW/GLAD, load compute shaders, dispatch, read back image.
+
+### 3) GPU data structures and integration helpers
+GPU-oriented BVH/SSBO utilities were added:
+- `RaytracingForLife/comp_src/BVH_Compute.h`
+  - Flattened BVH node format intended for SSBO upload.
+- `RaytracingForLife/comp_src/BVH_GPU_Manager.h`
+  - Uploads BVH/sphere/material buffers and texture, binds to compute program.
+- `RaytracingForLife/comp_src/ComputeBVH.h`
+  - Integration reference wrapper.
+- `RaytracingForLife/comp_src/GPU_CONVERSION_PATTERN.h`
+  - Documentation-style conversion pattern (CPU -> GPU).
+
+### 4) Build/system integration changes
+`RaytracingForLife/CMakeLists.txt` on `compute_shader` adds:
+- OpenGL-related deps (`glad`, `glfw`, `glm`, `OpenGL::GL`)
+- compute-support headers in target sources
+
+## OBJ integration status on `compute_shader`
+
+### Existing OBJ loader path (still CPU-oriented)
+- `RaytracingForLife/rt_src/Model3D.h` still uses `tinyobj::LoadObj(...)` and converts mesh indices to CPU `Triangle` objects in `Hittable_List`.
+- Scene functions in `RaytracingForLife.cpp` still call `Model3D::LoadModel("*.obj", ...)`.
+
+### Missing compute-shader OBJ pipeline
+No code was found that:
+- uploads OBJ triangle vertex/index buffers to compute SSBOs,
+- defines triangle-intersection compute kernels for loaded OBJ meshes,
+- maps `Model3D` output into compute-shader geometry buffers,
+- dispatches compute traversal against OBJ triangles.
+
+Current compute shader path is sphere/BVH-demo focused (`bvh_traverse.comp` traces `Sphere` data), not OBJ triangle mesh processing.
+
+## Comparison with `main`
+
+### `main` branch
+- Has OBJ loading (`Model3D` + `tiny_obj_loader`) and CPU raytracing scenes.
+- No compute shader files, no compute dispatch path, no GL compute setup.
+
+### `compute_shader` branch advances
+- Adds compute shader file set and helper abstractions.
+- Adds shader compile/link/dispatch/readback pipeline.
+- Adds GPU BVH/SSBO management for prototype scene data.
+
+### `compute_shader` branch limitations
+- No end-to-end OBJ-to-compute integration.
+- Compute examples target simple generated geometry (not mesh triangles from OBJ).
+- Some shader/asset paths are hardcoded to local Windows directories in test functions, indicating prototype state rather than portable integration.
+
+## Final conclusion
+`compute_shader` is a meaningful step beyond `main` for GPU compute experimentation, but it **does not currently provide compute-shader support for processing OBJ files**.
